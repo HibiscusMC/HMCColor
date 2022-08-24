@@ -1,0 +1,17 @@
+
+
+
+
+title: "<gradient:#aa3159:#8c0c0c>HMCColor"
+colors:
+  white:
+    baseColor: #aa3159
+    subColors:
+      - #8c0c0c
+      - #aa3159
+      - #8c0c3c
+      - #aa3139
+      - #8c0c2c
+      - #aa3129
+      - #8c0c1c
+      - #aa3119
