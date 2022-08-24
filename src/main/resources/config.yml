@@ -1,17 +1,96 @@
-
-
-
-
 title: "<gradient:#aa3159:#8c0c0c>HMCColor"
 colors:
-  white:
-    baseColor: #aa3159
+  red:
+    baseColor: 190,20,20
     subColors:
-      - #8c0c0c
-      - #aa3159
-      - #8c0c3c
-      - #aa3139
-      - #8c0c2c
-      - #aa3129
-      - #8c0c1c
-      - #aa3119
+      - "#FF0000"
+      - "#CE2029"
+      - "66023C"
+      - "C71585"
+      - "B3446C"
+      - "DE3163"
+      - "FF6961"
+  orange:
+    baseColor: 234,92,43
+    subColors:
+      - "#FF9F00"
+      - "#FFA500"
+      - "#F28500"
+      - "#FFB347"
+      - "#E24C00"
+      - "#EC5800"
+      - "#FFA500"
+  yellow:
+    baseColor: 255,201,0
+    subColors:
+      - "#FDDE6C"
+      - "#FFD700"
+      - "#FFC125"
+      - "#FFFACD"
+      - "#FFF8DC"
+      - "#FFFFE0"
+      - "#FFFF00"
+  pink:
+    baseColor: 255,255,255
+    subColors:
+      - "#8c0c0c"
+      - "#aa3159"
+      - "#8c0c3c"
+      - "#aa3139"
+      - "#8c0c2c"
+      - "#aa3129"
+      - "#8c0c1c"
+      - "#aa3119"
+  white:
+    baseColor: 255,255,255
+    subColors:
+      - "#8c0c0c"
+      - "#aa3159"
+      - "#8c0c3c"
+      - "#aa3139"
+      - "#8c0c2c"
+      - "#aa3129"
+      - "#8c0c1c"
+      - "#aa3119"
+  green:
+    baseColor: 163,218,141
+    subColors:
+      - "#8c0c0c"
+      - "#aa3159"
+      - "#8c0c3c"
+      - "#aa3139"
+      - "#8c0c2c"
+      - "#aa3129"
+      - "#8c0c1c"
+      - "#aa3119"
+  purple:
+    baseColor: 137,70,166
+    subColors:
+      - "#0000FF"
+      - "#0000CD"
+      - "#00008B"
+      - "#000080"
+      - "#4B0082"
+      - "#483D8B"
+      - "#6A5ACD"
+  blue:
+    baseColor: 55,49,181
+    subColors:
+      - "#0000FF"
+      - "#0000CD"
+      - "#00008B"
+      - "#000080"
+      - "#4B0082"
+      - "#483D8B"
+      - "#6A5ACD"
+  aqua:
+    baseColor: 255,255,255
+    subColors:
+      - "#8c0c0c"
+      - "#aa3159"
+      - "#8c0c3c"
+      - "#aa3139"
+      - "#8c0c2c"
+      - "#aa3129"
+      - "#8c0c1c"
+      - "#aa3119"
