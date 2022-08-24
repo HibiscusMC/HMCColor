@@ -1,0 +1,6 @@
+name: HMCColor
+version: '${version}'
+main: com.hibiscusmc.hmccolor.HMCColor
+api-version: 1.18
+softdepend: [ Oraxen, ItemsAdder ]
+authors: [ boy0000 ]
