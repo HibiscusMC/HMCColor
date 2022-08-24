@@ -1,6 +1,5 @@
 package com.hibiscusmc.hmccolor
 
-import dev.triumphteam.gui.components.GuiAction
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
@@ -36,8 +35,8 @@ class HMCColorCommands : CommandBase() {
         val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
         val fillerItem = GuiItem(Material.STICK)
 
-        gui.setItem(2, 2, fillerItem)
-        gui.setItem(2, 8, fillerItem)
+        gui.setItem(3, 2, fillerItem)
+        gui.setItem(3, 8, fillerItem)
         //gui.setItem(2, 5, GuiItem(ItemStack(Material.PAPER).setCustomModelData(2)))
 
         // baseColor square
@@ -50,19 +49,22 @@ class HMCColorCommands : CommandBase() {
         // Fill the subColor bar with the colors tied to the first baseColor
         gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyes.values.firstOrNull() ?: listOf(fillerItem))
 
+        //TODO Add functionality for when you click the slots etc
         gui.guiItems.forEach { (_, clickedItem) ->
             clickedItem.setAction {
-                when (clickedItem) {
-                    fillerItem -> it.isCancelled = true //Cancel clicking on the filler items
-                    GuiItem(Material.STONE) -> it.isCancelled = true
-                    in dyes.keys ->
+                when {
+                    clickedItem == GuiItem(Material.STONE) -> it.isCancelled = true
+                    clickedItem in dyes.keys && it.isLeftClick -> {
+                        it.isCancelled = true
                         gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyes[clickedItem] ?: return@setAction)
+                    }
+
                     else -> {
-                        val item = gui.getGuiItem(11)?.itemStack ?: return@setAction
+                        val item = gui.getGuiItem(20)?.itemStack ?: return@setAction
                         val meta = item.itemMeta as? LeatherArmorMeta ?: return@setAction
                         meta.setColor((clickedItem.itemStack.itemMeta as? LeatherArmorMeta)?.color ?: return@setAction)
                         item.itemMeta = meta
-                        gui.setItem(17, GuiItem(item))
+                        gui.setItem(26, GuiItem(item))
                     }
                 }
             }

@@ -14,10 +14,7 @@ class HMCColorConfig {
     private fun ConfigurationSection.getColors(): MutableMap<String, Colors> {
         val colors = mutableMapOf<String, Colors>()
         this.getKeys(false).forEach { colorKey ->
-            colorKey.broadcastVal("key: ")
             val c = this.getConfigurationSection(colorKey)!!
-            c.getString("baseColor")?.broadcastVal("baseColor: ")
-            c.getStringList("subColors").joinToString(", ").broadcastVal("subColors: ")
             colors[colorKey] = Colors(c.getString("baseColor")!!, c.getStringList("subColors").toSet())
         }
         return colors
