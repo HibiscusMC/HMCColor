@@ -11,6 +11,7 @@ import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
+import org.bukkit.inventory.meta.PotionMeta
 
 fun ItemStack.isOraxenItem() = OraxenItems.getIdByItem(this) != null
 fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
@@ -28,6 +29,15 @@ fun ItemStack.setCustomModelData(int: Int) : ItemStack {
     meta?.setCustomModelData(int)
     this.itemMeta = meta
     return this
+}
+
+fun ItemStack.isDyeable() : Boolean {
+    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta) return false
+    return when {
+        OraxenItems.exists(this) -> return OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
+        CustomStack.byItemStack(this) != null -> return CustomStack.byItemStack(this)?.id !in colorConfig.blacklistedItemsAdder
+        else -> type.toString() !in colorConfig.blacklistedTypes
+    }
 }
 
 fun createGui(): Gui {
@@ -48,6 +58,7 @@ fun createGui(): Gui {
     gui.setDefaultTopClickAction {
         if (it.slot != 19 && it.slot != 25) it.isCancelled = true
         else if (!it.isLeftClick || it.isShiftClick) it.isCancelled = true
+        else if (it.cursor != null && !it.cursor!!.isDyeable()) it.isCancelled = true
     }
 
     gui.setCloseGuiAction {
@@ -89,6 +100,7 @@ fun String.toColor(): Color {
         this.startsWith("0x") -> return Color.fromRGB(this.substring(2).toInt(16))
         "," in this -> {
             val colorString = this.replace(" ", "").split(",")
+            if (colorString.any { it.toIntOrNull() == null }) return Color.WHITE
             Color.fromRGB(colorString[0].toInt(), colorString[1].toInt(), colorString[2].toInt())
         }
 
@@ -104,7 +116,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
         // Make the baseColor ItemStack
         val baseItem = ItemStack(Material.LEATHER_HORSE_ARMOR)
         baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-            setDisplayName(key.lowercase().replaceFirstChar { "<${key.lowercase()}>" + it.uppercase() })
+            setDisplayName("" + key.lowercase().replaceFirstChar { it.uppercase() })
             setColor(colors.baseColor.toColor())
         }
 

@@ -1,4 +1,11 @@
 title: "<gradient:#aa3159:#8c0c0c>HMCColor"
+blacklistedItems:
+  oraxen_items:
+    - banned_oraxen_id
+  itemsadder_items:
+    - banned_itemsadder_id
+  types:
+    - LEATHER_CHESTPLATE
 colors:
   red:
     baseColor: 190,20,20
