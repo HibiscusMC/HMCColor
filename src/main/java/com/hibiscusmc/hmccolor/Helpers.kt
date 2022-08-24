@@ -34,12 +34,6 @@ fun createGui(): Gui {
     val rows = 6
     val dyes = getDyeColorList()
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
-    val fillerItem = ItemStack(Material.AIR)
-    fillerItem.itemMeta = fillerItem.itemMeta?.apply { setCustomModelData(2) }
-
-    gui.setItem(3, 2, GuiItem(fillerItem))
-    gui.setItem(3, 8, GuiItem(fillerItem))
-    //gui.setItem(2, 5, GuiItem(ItemStack(Material.PAPER).setCustomModelData(2)))
 
     // baseColor square
     dyes.map { it.key }.forEachIndexed { index, guiItem ->
@@ -49,9 +43,20 @@ fun createGui(): Gui {
     }
 
     //TODO Cancel topclick if item isnt dyeable
-    gui.setDefaultTopClickAction { if (it.slot != 19 && it.slot != 25 && (!it.isLeftClick || it.isShiftClick)) it.isCancelled = true }
-    gui.setOutsideClickAction { it.isCancelled = true }
     gui.setDragAction { it.isCancelled = true }
+    gui.setOutsideClickAction { it.isCancelled = true }
+    gui.setDefaultTopClickAction {
+        if (it.slot != 19 && it.slot != 25) it.isCancelled = true
+        else if (!it.isLeftClick || it.isShiftClick) it.isCancelled = true
+    }
+
+    gui.setCloseGuiAction {
+        val inputItem = it.inventory.getItem(19) ?: return@setCloseGuiAction
+
+        if (it.player.inventory.firstEmpty() != -1) {
+            it.player.inventory.addItem(inputItem)
+        } else it.player.world.dropItemNaturally(it.player.location, inputItem)
+    }
 
     //TODO Add functionality for when you click the slots etc
     gui.guiItems.forEach { (_, clickedItem) ->
