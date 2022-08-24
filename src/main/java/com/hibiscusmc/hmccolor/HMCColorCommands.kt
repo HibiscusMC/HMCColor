@@ -18,6 +18,6 @@ class HMCColorCommands : CommandBase() {
     @SubCommand("color")
     @Alias("dye")
     fun Player.colorCommand() {
-        hmcColorGui?.open(this)
+        createGui().open(this)
     }
 }
