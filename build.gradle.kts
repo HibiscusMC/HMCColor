@@ -63,13 +63,3 @@ tasks {
         }
     }
 }
-
-/*processResources {
-    val props = [version: version]
-    inputs.properties props
-    filteringCharset "UTF-8"
-    filesMatching("plugin.yml") {
-        expand props
-    }
-}*/
-

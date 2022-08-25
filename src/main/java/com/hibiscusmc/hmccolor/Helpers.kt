@@ -6,12 +6,13 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.th0rgal.oraxen.items.OraxenItems
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
+import org.bukkit.Bukkit.broadcastMessage
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
+import java.util.logging.Level
 
 fun ItemStack.isOraxenItem() = OraxenItems.getIdByItem(this) != null
 fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
@@ -22,16 +23,19 @@ fun ItemStack.getItemsAdderStack() = CustomStack.byItemStack(this)
 fun String.miniMsg() = mm.deserialize(this)
 fun Component.serialize() = mm.serialize(this)
 
-fun Any.broadcastVal(prefix: String = "") = Bukkit.broadcastMessage(prefix + this.toString())
+fun <T> T.logVal(message: String = ""): T =
+    hmcColor.logger.log(Level.INFO, "${if (message == "") "" else "$message: "}$this").let { this }
 
-fun ItemStack.setCustomModelData(int: Int) : ItemStack {
+fun <T> T.broadcastVal(message: String = ""): T = broadcastMessage("$message$this").let { this }
+
+fun ItemStack.setCustomModelData(int: Int): ItemStack {
     val meta = itemMeta
     meta?.setCustomModelData(int)
     this.itemMeta = meta
     return this
 }
 
-fun ItemStack.isDyeable() : Boolean {
+fun ItemStack.isDyeable(): Boolean {
     if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta) return false
     return when {
         OraxenItems.exists(this) -> return OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
@@ -56,9 +60,13 @@ fun createGui(): Gui {
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
     gui.setDefaultTopClickAction {
-        if (it.slot != 19 && it.slot != 25) it.isCancelled = true
-        else if (!it.isLeftClick || it.isShiftClick) it.isCancelled = true
-        else if (it.cursor != null && !it.cursor!!.isDyeable()) it.isCancelled = true
+        when {
+            it.slot != 19 && it.slot != 25 -> it.isCancelled = true // Cancel any non input/output slot
+            it.slot == 25 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
+            !it.isLeftClick || it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
+            it.cursor != null && !it.cursor!!.isDyeable() -> it.isCancelled =
+                true // Cancel adding non-dyeable or banned items
+        }
     }
 
     gui.setCloseGuiAction {
@@ -72,21 +80,27 @@ fun createGui(): Gui {
     //TODO Add functionality for when you click the slots etc
     gui.guiItems.forEach { (_, clickedItem) ->
         clickedItem.setAction { click ->
+            // Logic for clicking a baseColor to show all subColors
             when {
                 clickedItem in dyes.keys && click.isLeftClick -> {
                     gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyes[clickedItem] ?: return@setAction)
                     click.isCancelled = true
                 }
 
+                // Logic for coloring item by clicking a subColor item
                 dyes.values.any { clickedItem in it } -> {
                     val item = gui.getGuiItem(19)?.itemStack ?: return@setAction
-                    (item.itemMeta as? LeatherArmorMeta ?: return@setAction).apply {
-                        this.setColor((clickedItem.itemStack.itemMeta as? LeatherArmorMeta)?.color ?: return@setAction)
-                    }
+                    item.itemMeta =
+                        (item.itemMeta as? LeatherArmorMeta ?: return@setAction).apply {
+                            this.setColor(
+                                (clickedItem.itemStack.itemMeta as? LeatherArmorMeta)?.color ?: return@setAction
+                            )
+                        }
 
                     gui.setItem(25, GuiItem(item))
                     click.isCancelled = true
                 }
+
                 else -> return@setAction
             }
         }
@@ -103,8 +117,8 @@ fun String.toColor(): Color {
             if (colorString.any { it.toIntOrNull() == null }) return Color.WHITE
             Color.fromRGB(colorString[0].toInt(), colorString[1].toInt(), colorString[2].toInt())
         }
-
-        else -> return Color.fromRGB(this.toInt(16))
+        //TODO Make this support text, probably through minimessage
+        else -> return Color.WHITE
     }
 }
 
@@ -115,18 +129,20 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
     colorConfig.colors.forEach baseColor@{ (key, colors) ->
         // Make the baseColor ItemStack
         val baseItem = ItemStack(Material.LEATHER_HORSE_ARMOR)
-        baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-            setDisplayName("" + key.lowercase().replaceFirstChar { it.uppercase() })
-            setColor(colors.baseColor.toColor())
-        }
+        baseItem.itemMeta =
+            (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
+                setDisplayName("" + key.lowercase().replaceFirstChar { it.uppercase() })
+                setColor(colors.baseColor.toColor())
+            }
 
         // Make the ItemStacks for all subColors
         colors.subColors.forEach subColor@{ color ->
             val subItem = ItemStack(Material.LEATHER_HORSE_ARMOR)
-            subItem.itemMeta = (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-                setDisplayName(" ")
-                setColor(color.toColor())
-            }
+            subItem.itemMeta =
+                (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
+                    setDisplayName(" ") //TODO Make subColor a map and add option for name?
+                    setColor(color.toColor())
+                }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
             list.add(GuiItem(subItem))
