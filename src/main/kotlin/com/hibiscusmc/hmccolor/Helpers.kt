@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.th0rgal.oraxen.items.OraxenItems
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Bukkit.broadcastMessage
 import org.bukkit.Color
 import org.bukkit.Material
@@ -23,6 +24,9 @@ fun ItemStack.getItemsAdderStack() = CustomStack.byItemStack(this)
 fun String.miniMsg() = mm.deserialize(this)
 fun Component.serialize() = mm.serialize(this)
 
+val isIALoaded = Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")
+val isOraxenLoaded = Bukkit.getPluginManager().isPluginEnabled("Oraxen")
+
 fun <T> T.logVal(message: String = ""): T =
     hmcColor.logger.log(Level.INFO, "${if (message == "") "" else "$message: "}$this").let { this }
 
@@ -38,12 +42,15 @@ fun ItemStack.setCustomModelData(int: Int): ItemStack {
 private fun ItemStack.isDyeable(): Boolean {
     if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta) return false
     return when {
-        OraxenItems.exists(this) -> return OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
-        CustomStack.byItemStack(this) != null -> return CustomStack.byItemStack(this)?.id !in colorConfig.blacklistedItemsAdder
+        isOraxenLoaded && OraxenItems.exists(this) ->
+            OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
+        isIALoaded && CustomStack.byItemStack(this) != null ->
+            CustomStack.byItemStack(this)?.id !in colorConfig.blacklistedItemsAdder
         else -> type.toString() !in colorConfig.blacklistedTypes
     }
 }
 
+// Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
 fun createGui(): Gui {
     val rows = 6
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
@@ -59,25 +66,63 @@ fun createGui(): Gui {
     gui.guiItems.forEach { (_, clickedItem) ->
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
-            cachedDyeMap[clickedItem]!!.map { it.itemStack.type }.logVal()
             when {
-                clickedItem in cachedDyeMap.keys && click.isLeftClick ->
-                    gui.filler.fillBetweenPoints(rows, 2, rows, 8, cachedDyeMap[clickedItem]!!)
+                click.isShiftClick -> return@setAction
+                click.isLeftClick && clickedItem in cachedDyeMap.keys -> {
+                    val dyeMap = cachedDyeMap[clickedItem] ?: return@setAction
+                    gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyeMap)
+
+                    (46..52).forEachIndexed { index, i ->
+                        gui.updateItem(i, dyeMap[index])
+                        val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
+                        subColor.setAction subAction@{
+                            when {
+                                it.isShiftClick -> return@subAction
+                                (click.isLeftClick && subColor in cachedDyeMap.values.flatten()) -> {
+                                    val guiOutput = gui.getGuiItem(20) ?: GuiItem(ItemStack(Material.LEATHER_HORSE_ARMOR))
+                                    guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta.apply {
+                                        if (this !is LeatherArmorMeta) return@apply
+                                        this.setColor((subColor.itemStack.itemMeta as LeatherArmorMeta).color)
+                                    }
+
+                                    gui.setItem(25, guiOutput)
+                                    gui.updateItem(25, guiOutput)
+                                    guiOutput.setAction output@{ click ->
+                                        when {
+                                            click.cursor?.type == Material.AIR && click.currentItem != null -> {
+                                                if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
+                                                else click.whoClicked.inventory.addItem(click.currentItem)
+                                                gui.updateItem(20, ItemStack(Material.AIR))
+                                                gui.updateItem(25, ItemStack(Material.AIR))
+                                                gui.update()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 else -> return@setAction
             }
         }
     }
 
-    //TODO Cancel topclick if item isnt dyeable
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
+    gui.setPlayerInventoryAction { if (it.isShiftClick) it.isCancelled = true }
     gui.setDefaultTopClickAction {
         when {
+            it.slot == 19 && it.whoClicked.itemOnCursor.type == Material.AIR -> {
+                it.whoClicked.setItemOnCursor(it.inventory.getItem(19))
+                gui.updateItem(20, ItemStack(Material.AIR))
+                gui.updateItem(25, ItemStack(Material.AIR))
+                gui.update()
+            }
             it.slot != 19 && it.slot != 25 -> it.isCancelled = true // Cancel any non input/output slot
             it.slot == 25 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
-            !it.isLeftClick || it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
-            it.cursor != null && !it.cursor!!.isDyeable() -> it.isCancelled =
-                true // Cancel adding non-dyeable or banned items
+            it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
+            it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
         }
     }
 
