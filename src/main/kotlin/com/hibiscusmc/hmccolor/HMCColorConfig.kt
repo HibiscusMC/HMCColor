@@ -3,7 +3,9 @@ package com.hibiscusmc.hmccolor
 import org.bukkit.configuration.ConfigurationSection
 
 // Just to make the code abit prettier :)
-data class Colors(val baseColor: String, val subColors: Set<String>)
+data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>)
+data class BaseColor(val name: String, val color: String)
+data class SubColor(val name: String, val color:String)
 class HMCColorConfig {
     private val config = hmcColor.config
     val title = config.getString("title", "HMCColor")!!
@@ -18,11 +20,23 @@ class HMCColorConfig {
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")!!.getColors()
 
-    private fun ConfigurationSection.getColors(): MutableMap<String, Colors> {
-        val colors = mutableMapOf<String, Colors>()
+    private fun ConfigurationSection.getColors(): Set<Colors> {
+        val colors = mutableSetOf<Colors>()
+        val subColorList = mutableListOf<SubColor>()
         this.getKeys(false).forEach { colorKey ->
             val c = this.getConfigurationSection(colorKey)!!
-            colors[colorKey] = Colors(c.getString("baseColor")!!, c.getStringList("subColors").toSet())
+            val s = c.getConfigurationSection("subColors")!!
+
+            s.getKeys(false).forEach { subColor ->
+                val sub = s.getConfigurationSection(subColor)!!
+                subColorList.add(SubColor(sub.getString("name", "") ?: "", sub.getString("color") ?: "#FFFFFF"))
+            }
+
+            colors.add(Colors(
+                BaseColor(c.getString("name", "") ?: "", c.getString("baseColor") ?: "#FFFFFF"),
+                subColorList.toSet()
+            ))
+            subColorList.clear()
         }
         return colors
     }

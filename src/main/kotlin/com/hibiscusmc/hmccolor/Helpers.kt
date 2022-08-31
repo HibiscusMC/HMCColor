@@ -158,30 +158,29 @@ private fun String.toColor(): Color {
 fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
     val map = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 
-    colorConfig.colors.forEach baseColor@{ (key, colors) ->
+    colorConfig.colors.forEach baseColor@{ (baseColor, subColors) ->
         val list = mutableListOf<GuiItem>()
         val baseItem = getDefaultItem()
 
         baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-            setColor(colors.baseColor.toColor())
-            setDisplayName(Adventure.MINI_MESSAGE.deserialize(key.lowercase().replaceFirstChar{it.uppercase()}).serialize())
+            setColor(baseColor.color.toColor())
+            setDisplayName(Adventure.MINI_MESSAGE.deserialize(baseColor.name).serialize())
         }
 
 
         // Make the ItemStacks for all subColors
-        colors.subColors.forEach subColor@{ color ->
-            val defaultSubItem = getDefaultItem()
+        subColors.forEach subColor@{ color ->
             val subItem = when {
                     isOraxenLoaded && OraxenItems.exists(colorConfig.oraxenItem) ->
-                        OraxenItems.getItemById(colorConfig.oraxenItem).build() ?: defaultSubItem
+                        OraxenItems.getItemById(colorConfig.oraxenItem).build() ?: getDefaultItem()
                     isIALoaded && CustomStack.isInRegistry(colorConfig.itemsAdderItem) ->
-                        CustomStack.getInstance(colorConfig.itemsAdderItem)?.itemStack ?: defaultSubItem
-                    else -> defaultSubItem
+                        CustomStack.getInstance(colorConfig.itemsAdderItem)?.itemStack ?: getDefaultItem()
+                    else -> getDefaultItem()
                 }
 
             subItem.itemMeta = (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-                setDisplayName(color) //TODO Make subColor a map and add option for name?
-                setColor(color.toColor())
+                setDisplayName(color.name) //TODO Make subColor a map and add option for name?
+                setColor(color.color.toColor())
             }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
