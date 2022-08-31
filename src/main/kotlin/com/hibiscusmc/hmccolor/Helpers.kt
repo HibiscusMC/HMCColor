@@ -44,8 +44,10 @@ private fun ItemStack.isDyeable(): Boolean {
     return when {
         isOraxenLoaded && OraxenItems.exists(this) ->
             OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
+
         isIALoaded && CustomStack.byItemStack(this) != null ->
             CustomStack.byItemStack(this)?.id !in colorConfig.blacklistedItemsAdder
+
         else -> type.toString() !in colorConfig.blacklistedTypes
     }
 }
@@ -73,13 +75,20 @@ fun createGui(): Gui {
                     gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyeMap)
 
                     (46..52).forEachIndexed { index, i ->
-                        gui.updateItem(i, dyeMap[index])
+                        gui.updateItem(
+                            i, try {
+                                dyeMap[index]
+                            } catch (_: IndexOutOfBoundsException) {
+                                GuiItem(Material.AIR)
+                            }
+                        )
                         val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
                         subColor.setAction subAction@{
                             when {
                                 it.isShiftClick -> return@subAction
                                 (click.isLeftClick && subColor in cachedDyeMap.values.flatten()) -> {
-                                    val guiInput = click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
+                                    val guiInput =
+                                        click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
                                     guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta.apply {
                                         if (this is LeatherArmorMeta)
@@ -106,6 +115,7 @@ fun createGui(): Gui {
                         }
                     }
                 }
+
                 else -> return@setAction
             }
         }
@@ -122,6 +132,7 @@ fun createGui(): Gui {
                 gui.updateItem(25, ItemStack(Material.AIR))
                 gui.update()
             }
+
             it.slot != 19 && it.slot != 25 -> it.isCancelled = true // Cancel any non input/output slot
             it.slot == 25 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
             it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
@@ -158,30 +169,31 @@ private fun String.toColor(): Color {
 fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
     val map = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 
-    colorConfig.colors.forEach baseColor@{ (key, colors) ->
+    colorConfig.colors.forEach baseColor@{ (baseColor, subColors) ->
         val list = mutableListOf<GuiItem>()
         val baseItem = getDefaultItem()
 
         baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-            setColor(colors.baseColor.toColor())
-            setDisplayName(Adventure.MINI_MESSAGE.deserialize(key.lowercase().replaceFirstChar{it.uppercase()}).serialize())
+            setColor(baseColor.color.toColor())
+            setDisplayName(Adventure.MINI_MESSAGE.deserialize(baseColor.name).serialize())
         }
 
 
         // Make the ItemStacks for all subColors
-        colors.subColors.forEach subColor@{ color ->
-            val defaultSubItem = getDefaultItem()
+        subColors.forEach subColor@{ color ->
             val subItem = when {
-                    isOraxenLoaded && OraxenItems.exists(colorConfig.oraxenItem) ->
-                        OraxenItems.getItemById(colorConfig.oraxenItem).build() ?: defaultSubItem
-                    isIALoaded && CustomStack.isInRegistry(colorConfig.itemsAdderItem) ->
-                        CustomStack.getInstance(colorConfig.itemsAdderItem)?.itemStack ?: defaultSubItem
-                    else -> defaultSubItem
-                }
+                isOraxenLoaded && OraxenItems.exists(colorConfig.oraxenItem) ->
+                    OraxenItems.getItemById(colorConfig.oraxenItem).build() ?: getDefaultItem()
+
+                isIALoaded && CustomStack.isInRegistry(colorConfig.itemsAdderItem) ->
+                    CustomStack.getInstance(colorConfig.itemsAdderItem)?.itemStack ?: getDefaultItem()
+
+                else -> getDefaultItem()
+            }
 
             subItem.itemMeta = (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-                setDisplayName(color) //TODO Make subColor a map and add option for name?
-                setColor(color.toColor())
+                setDisplayName(color.name) //TODO Make subColor a map and add option for name?
+                setColor(color.color.toColor())
             }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
