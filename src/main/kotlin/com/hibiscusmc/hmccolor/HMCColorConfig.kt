@@ -7,6 +7,11 @@ data class Colors(val baseColor: String, val subColors: Set<String>)
 class HMCColorConfig {
     private val config = hmcColor.config
     val title = config.getString("title", "HMCColor")!!
+    private val buttons = config.getConfigurationSection("buttons")
+    val oraxenItem = buttons?.getString("oraxen_item", "")
+    val itemsAdderItem = buttons?.getString("items_adder_item", "")
+    val defaultItem = buttons?.getString("default_type", "LEATHER_HORSE_ARMOR")
+    val customModelData = buttons?.getInt("custom_model_data", 0)
     private val blacklist = config.getConfigurationSection("blacklist")
     val blacklistedOraxen: List<String> = blacklist?.getStringList("oraxen_items") ?: emptyList()
     val blacklistedItemsAdder: List<String> = blacklist?.getStringList("itemsadder_items") ?: emptyList()
