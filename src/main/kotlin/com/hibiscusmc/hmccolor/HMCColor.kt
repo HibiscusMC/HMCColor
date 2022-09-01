@@ -12,7 +12,6 @@ var cachedDyeMap = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 class HMCColor : JavaPlugin() {
     override fun onEnable() {
         saveDefaultConfig()
-        reloadConfig()
 
         cachedDyeMap = getDyeColorList()
 
@@ -20,6 +19,6 @@ class HMCColor : JavaPlugin() {
     }
 
     override fun onDisable() {
-
+        cachedDyeMap.clear()
     }
 }

@@ -1,5 +1,6 @@
 package com.hibiscusmc.hmccolor
 
+import com.hibiscusmc.hmccolor.Adventure.toLegacy
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
@@ -175,7 +176,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
 
         baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
             setColor(baseColor.color.toColor())
-            setDisplayName(Adventure.MINI_MESSAGE.deserialize(baseColor.name).serialize())
+            setDisplayName(baseColor.name.toLegacy())
         }
 
 
@@ -192,7 +193,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
             }
 
             subItem.itemMeta = (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-                setDisplayName(color.name) //TODO Make subColor a map and add option for name?
+                setDisplayName(color.name.toLegacy()) //TODO Make subColor a map and add option for name?
                 setColor(color.color.toColor())
             }
 

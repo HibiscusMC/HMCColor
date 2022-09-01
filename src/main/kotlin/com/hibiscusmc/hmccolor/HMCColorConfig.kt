@@ -7,7 +7,7 @@ data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>)
 data class BaseColor(val name: String, val color: String)
 data class SubColor(val name: String, val color:String)
 class HMCColorConfig {
-    private val config = hmcColor.config
+    private var config = hmcColor.config
     val title = config.getString("title", "HMCColor")!!
     private val buttons = config.getConfigurationSection("buttons")
     val oraxenItem = buttons?.getString("oraxen_item", "")
@@ -19,6 +19,11 @@ class HMCColorConfig {
     val blacklistedItemsAdder: List<String> = blacklist?.getStringList("itemsadder_items") ?: emptyList()
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")!!.getColors()
+
+    fun reload() {
+        hmcColor.reloadConfig()
+        colorConfig.config = hmcColor.config
+    }
 
     private fun ConfigurationSection.getColors(): Set<Colors> {
         val colors = mutableSetOf<Colors>()

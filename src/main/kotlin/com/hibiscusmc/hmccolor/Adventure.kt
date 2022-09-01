@@ -12,4 +12,6 @@ object Adventure {
     val MINI_MESSAGE = MiniMessage.builder().tags(
         StandardTags.defaults()
     ).build()
+
+    fun String.toLegacy() = SERIALIZER.serialize(MINI_MESSAGE.deserialize(this))
 }
