@@ -14,6 +14,7 @@ repositories {
     gradlePluginPortal()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://repo.mineinabyss.com/releases")
     maven("https://jitpack.io")
 }
 
@@ -21,6 +22,9 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT")
     compileOnly("com.github.oraxen:oraxen:-SNAPSHOT")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.2.3c")
+    compileOnly("com.mineinabyss:idofront:0.12.111")
+    compileOnly("com.mineinabyss:geary-papermc-core:0.19.113")
+    compileOnly("com.mineinabyss:looty:0.8.67")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("net.kyori:adventure-api:4.11.0")
