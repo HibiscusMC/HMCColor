@@ -13,227 +13,227 @@ blacklistedItems:
     - LEATHER_CHESTPLATE
 colors:
   red:
-    name: "Red"
-    baseColor: 190,20,20
+    name: "<#D23635>Red"
+    baseColor: 210,54,53
     subColors:
       1:
-        name: "sadasd"
+        name: "<#ff0000>Light Red"
         color: "#FF0000"
       2:
-        name: "sadasd"
+        name: "<#CE2029>Fire Engine Red"
         color: "#CE2029"
       3:
-        name: "sadasd"
-        color: "66023C"
+        name: "<#66023C>Tyrian Red"
+        color: "#66023C"
       4:
-        name: "sadasd"
-        color: "C71585"
+        name: "<#C71585>Red Violet"
+        color: "#C71585"
       5:
-        name: "sadasd"
-        color: "B3446C"
+        name: "<B3446C>Raspberry Red"
+        color: "#B3446C"
       6:
-        name: "sadasd"
-        color: "DE3163"
+        name: "<DE3163>Cerise Red"
+        color: "#DE3163"
       7:
-        name: "sadasd"
-        color: "FF6961"
+        name: "Neon Red"
+        color: "#FF6961"
   orange:
-    name: "Orange"
+    name: "<#EA5C2B>Orange"
     baseColor: 234,92,43
     subColors:
       1:
-        name: "sadasd"
+        name: "<#ff9f00>Orange Peel"
         color: "#FF9F00"
       2:
-        name: "sadasd"
+        name: "<#ffa500>Light Orange"
         color: "#FFA500"
       3:
-        name: "sadasd"
+        name: "<#f28500>Tangerine Orange"
         color: "#F28500"
       4:
-        name: "sadasd"
+        name: "<#ffb347>Pastel Orange"
         color: "#FFB347"
       5:
-        name: "sadasd"
+        name: "<#e24c00>Bright Orange"
         color: "#E24C00"
       6:
-        name: "sadasd"
+        name: "<#EC5800>Persimmon Orange"
         color: "#EC5800"
       7:
-        name: "sadasd"
+        name: "<#ffa500>Orange"
         color: "#FFA500"
   yellow:
-    name: "Yellow"
+    name: "<#FFC900>Yellow"
     baseColor: 255,201,0
     subColors:
       1:
-        name: "sadasd"
+        name: "<#FDDE6C>Golden Rod"
         color: "#FDDE6C"
       2:
-        name: "sadasd"
+        name: "<#FFF44F>Lemon Yellow"
         color: "#FFF44F"
       3:
-        name: "sadasd"
+        name: "<#FFEF00>Canary Yellow"
         color: "#FFEF00"
       4:
-        name: "sadasd"
+        name: "<#FFD00A>Citrine Yellow"
         color: "#FFD00A"
       5:
-        name: "sadasd"
+        name: "<#F1FF62>Lazer Lemon Yellow"
         color: "#F1FF62"
       6:
-        name: "sadasd"
+        name: "<#E8DE2A>Sunflower Yellow"
         color: "#E8DE2A"
       7:
-        name: "sadasd"
+        name: "<#FFD800>School Bus Yellow"
         color: "#FFD800"
   pink:
-    name: "Pink"
+    name: "<#FC35FA>Pink"
     baseColor: "#FC35FA"
     subColors:
       1:
-        name: "sadasd"
+        name: "<#fc8eac>Flamingo Pink"
         color: "#FC8EAC"
       2:
-        name: "sadasd"
+        name: "<#fc6c85>Watermelon Color"
         color: "#FC6C85"
       3:
-        name: "sadasd"
+        name: "<#ff77ff>Fuchsia Pink"
         color: "#FF77FF"
       4:
-        name: "sadasd"
+        name: "<#ff69b4>Hot Pink"
         color: "#FF69B4"
       5:
-        name: "sadasd"
+        name: "<#e75480>Dark Pink"
         color: "#E75480"
       6:
-        name: "sadasd"
+        name: "<#ffd1dc>Pastel Pink"
         color: "#FFD1DC"
       7:
-        name: "sadasd"
+        name: "<#de5d83>Blush Pink"
         color: "#8c0c1c"
   white:
-    name: "White"
+    name: "<#FFFFFF>White"
     baseColor: 255,255,255
     subColors:
       1:
-        name: "sadasd"
+        name: "<#FFFFFF>White"
         color: "#FFFFFF"
       2:
-        name: "sadasd"
+        name: "<#fdf5e6>Old Lace White"
         color: "#FDF5E6"
       3:
-        name: "sadasd"
+        name: "<#faf0e6>Linen White"
         color: "#FAF0E6"
       4:
-        name: "sadasd"
+        name: "<#f5f5f5>White Smoke"
         color: "#F5F5F5"
       5:
-        name: "sadasd"
+        name: "<#808080>Light Grey"
         color: "#808080"
       6:
-        name: "sadasd"
+        name: "<#2a2727>Dark Grey"
         color: "#2A2727"
       7:
-        name: "sadasd"
+        name: "<#000000>Black"
         color: "#000000"
   green:
-    name: "Green"
+    name: "<#A3DA8D>Green"
     baseColor: 163,218,141
     subColors:
       1:
-        name: "sadasd"
+        name: "<#32cd32>Lime Green"
         color: "#32CD32"
       2:
-        name: "sadasd"
+        name: "<#4cbb17>Kelly Green"
         color: "#4CBB17"
       3:
-        name: "sadasd"
+        name: "<#7fff00>Chartreuse Green"
         color: "#7FFF00"
       4:
-        name: "sadasd"
+        name: "<#006400>Dark Green"
         color: "#006400"
       5:
-        name: "sadasd"
+        name: "<#228b22>Forest Green"
         color: "#228B22"
       6:
-        name: "sadasd"
+        name: "<#39ff14>Neon Green"
         color: "#39FF14"
       7:
-        name: "sadasd"
+        name: "<#4f7942>Fern Green"
         color: "#4F7942"
   purple:
-    name: "Purple"
+    name: "<#8946A6>Purple"
     baseColor: 137,70,166
     subColors:
       1:
-        name: "sadasd"
+        name: "<#9966cc>Amethyst Purple"
         color: "#9966CC"
       2:
-        name: "sadasd"
+        name: "<#4B0082>Indigo Purple"
         color: "#4B0082"
       3:
-        name: "sadasd"
+        name: "<#551a8b>Dark Purple"
         color: "#551A8B"
       4:
-        name: "sadasd"
+        name: "<#6f2da8>Grape Purple"
         color: "#6F2DA8"
       5:
-        name: "sadasd"
+        name: "<#bf00ff>Electric Purple"
         color: "#BF00FF"
       6:
-        name: "sadasd"
+        name: "<#7851a9>Royal Purple"
         color: "#7851A9"
       7:
-        name: "sadasd"
+        name: "<#6f2da8>Lilac Purple"
         color: "#B666D2"
   blue:
-    name: "Blue"
+    name: "<#3731B5>Blue"
     baseColor: 55,49,181
     subColors:
       1:
-        name: "sadasd"
+        name: "<#318CE7>France Blue"
         color: "#318CE7"
       2:
-        name: "sadasd"
+        name: "<#034694>Chelsea Blue"
         color: "#034694"
       3:
-        name: "sadasd"
+        name: "<#007FFF>Azure Blue"
         color: "#007FFF"
       4:
-        name: "sadasd"
+        name: "<#0000FF>Blue"
         color: "#0000FF"
       5:
-        name: "sadasd"
+        name: "<#13274F>Braves Navy"
         color: "#13274F"
       6:
-        name: "sadasd"
+        name: "<#00008B>Dark Blue"
         color: "#00008B"
       7:
-        name: "sadasd"
+        name: "<#6495ED>Cornflower Blue"
         color: "#6495ED"
-  aqua:
-    name: "Aqua"
+  light_blue:
+    name: "<#32ECE8>Light Blue"
     baseColor: "#99FFFF"
     subColors:
       1:
-        name: "sadasd"
+        name: "<#0CAFFF>Chlorine Blue"
         color: "#0CAFFF"
       2:
-        name: "sadasd"
+        name: "<#00BFFF>Deep Sky Blue"
         color: "#0CBFFF"
       3:
-        name: "sadasd"
+        name: "<#7DF9FF>Eletric Blue"
         color: "#7DF9FF"
       4:
-        name: "sadasd"
+        name: "<#87CEFA>Light Sky Blue"
         color: "#87CEFA"
       5:
-        name: "sadasd"
+        name: "<#73C2FB>Maya Blue"
         color: "#73C2FB"
       6:
-        name: "sadasd"
+        name: "<#7CB9E8>Aero Blue"
         color: "#7CB9E8"
       7:
-        name: "sadasd"
+        name: "<#99FFFF>Ice Blue"
         color: "#99FFFF"
