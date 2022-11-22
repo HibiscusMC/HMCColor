@@ -9,7 +9,7 @@ import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
-import io.th0rgal.oraxen.items.OraxenItems
+import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Bukkit.broadcastMessage
@@ -20,7 +20,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
 import java.util.logging.Level
 
-fun ItemStack.isOraxenItem() = OraxenItems.getIdByItem(this) != null
+fun ItemStack.isOraxenItem() = OraxenItems.exists(this)
 fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
 fun String.isOraxenItem() = OraxenItems.exists(this)
 fun String.getOraxenItem() = OraxenItems.getItemById(this).build()
