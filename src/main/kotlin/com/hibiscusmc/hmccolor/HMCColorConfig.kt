@@ -12,11 +12,13 @@ class HMCColorConfig {
     private val buttons = config.getConfigurationSection("buttons")
     val oraxenItem = buttons?.getString("oraxen_item", "")
     val itemsAdderItem = buttons?.getString("items_adder_item", "")
+    val lootyItem = buttons?.getString("looty_item", "")
     val defaultItem = buttons?.getString("default_type", "LEATHER_HORSE_ARMOR")
     val customModelData = buttons?.getInt("custom_model_data", 0)
     private val blacklist = config.getConfigurationSection("blacklist")
     val blacklistedOraxen: List<String> = blacklist?.getStringList("oraxen_items") ?: emptyList()
     val blacklistedItemsAdder: List<String> = blacklist?.getStringList("itemsadder_items") ?: emptyList()
+    val blacklistedLooty: List<String> = blacklist?.getStringList("looty_items") ?: emptyList()
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")!!.getColors()
 

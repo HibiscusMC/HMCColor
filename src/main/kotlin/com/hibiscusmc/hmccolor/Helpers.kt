@@ -1,11 +1,15 @@
 package com.hibiscusmc.hmccolor
 
 import com.hibiscusmc.hmccolor.Adventure.toLegacy
+import com.mineinabyss.geary.prefabs.PrefabKey
+import com.mineinabyss.idofront.serialization.toSerializable
+import com.mineinabyss.looty.LootyFactory
+import com.mineinabyss.looty.tracking.toGearyFromUUIDOrNull
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
-import io.th0rgal.oraxen.items.OraxenItems
+import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Bukkit.broadcastMessage
@@ -16,17 +20,27 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
 import java.util.logging.Level
 
-fun ItemStack.isOraxenItem() = OraxenItems.getIdByItem(this) != null
+fun ItemStack.isOraxenItem() = OraxenItems.exists(this)
 fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
+fun String.isOraxenItem() = OraxenItems.exists(this)
+fun String.getOraxenItem() = OraxenItems.getItemById(this).build()
 
 fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
-fun ItemStack.getItemsAdderStack() = CustomStack.byItemStack(this)
+fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
+fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
+fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
+
+fun ItemStack.isLootyItem() = this.toGearyFromUUIDOrNull() != null
+fun ItemStack.getLootyID() = this.toSerializable().prefab
+fun String.isLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this)) != null
+fun String.getLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this))
 
 fun String.miniMsg() = mm.deserialize(this)
 fun Component.serialize() = mm.serialize(this)
 
 val isIALoaded = Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")
 val isOraxenLoaded = Bukkit.getPluginManager().isPluginEnabled("Oraxen")
+val isLootyLoaded = Bukkit.getPluginManager().isPluginEnabled("Looty")
 
 fun <T> T.logVal(message: String = ""): T =
     hmcColor.logger.log(Level.INFO, "${if (message == "") "" else "$message: "}$this").let { this }
@@ -43,11 +57,14 @@ fun ItemStack.setCustomModelData(int: Int): ItemStack {
 private fun ItemStack.isDyeable(): Boolean {
     if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta) return false
     return when {
-        isOraxenLoaded && OraxenItems.exists(this) ->
-            OraxenItems.getIdByItem(this) !in colorConfig.blacklistedOraxen
+        isOraxenLoaded && this.isOraxenItem() ->
+            this.getOraxenID() !in colorConfig.blacklistedOraxen
 
-        isIALoaded && CustomStack.byItemStack(this) != null ->
-            CustomStack.byItemStack(this)?.id !in colorConfig.blacklistedItemsAdder
+        isIALoaded && this.isItemsAdderItem() ->
+            this.getItemsAdderID() !in colorConfig.blacklistedItemsAdder
+
+        isLootyLoaded && this.isLootyItem() ->
+            this.getLootyID() !in colorConfig.blacklistedLooty
 
         else -> type.toString() !in colorConfig.blacklistedTypes
     }
@@ -183,11 +200,14 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
         // Make the ItemStacks for all subColors
         subColors.forEach subColor@{ color ->
             val subItem = when {
-                isOraxenLoaded && OraxenItems.exists(colorConfig.oraxenItem) ->
-                    OraxenItems.getItemById(colorConfig.oraxenItem).build() ?: getDefaultItem()
+                isOraxenLoaded && colorConfig.oraxenItem?.isOraxenItem() == true ->
+                    colorConfig.oraxenItem?.getOraxenItem() ?: getDefaultItem()
 
-                isIALoaded && CustomStack.isInRegistry(colorConfig.itemsAdderItem) ->
-                    CustomStack.getInstance(colorConfig.itemsAdderItem)?.itemStack ?: getDefaultItem()
+                isIALoaded && colorConfig.itemsAdderItem?.isItemsAdderItem() == true ->
+                    colorConfig.itemsAdderItem?.getItemsAdderStack() ?: getDefaultItem()
+
+                isLootyLoaded && colorConfig.lootyItem?.isLootyItem() == true ->
+                    colorConfig.lootyItem?.getLootyItem() ?: getDefaultItem()
 
                 else -> getDefaultItem()
             }
