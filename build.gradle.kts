@@ -21,7 +21,7 @@ repositories {
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT")
     compileOnly("com.github.oraxen:oraxen:-SNAPSHOT")
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.2.3c")
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.2.5")
     compileOnly("com.mineinabyss:idofront:0.12.111")
     compileOnly("com.mineinabyss:geary-papermc-core:0.19.113")
     compileOnly("com.mineinabyss:looty:0.8.67")
