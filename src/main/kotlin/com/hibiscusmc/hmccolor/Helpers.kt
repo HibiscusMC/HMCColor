@@ -109,10 +109,17 @@ fun createGui(): Gui {
                                         click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
                                     guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta?.apply {
-                                        if (this is LeatherArmorMeta)
-                                            this.setColor((subColor.itemStack.itemMeta as LeatherArmorMeta).color)
-                                        else if (this is PotionMeta)
-                                            this.color = (subColor.itemStack.itemMeta as PotionMeta).color
+                                        val appliedColor = subColor.itemStack.itemMeta?.let { meta ->
+                                            when (meta) {
+                                                is LeatherArmorMeta -> meta.color
+                                                is PotionMeta -> meta.color
+                                                else -> null
+                                            }
+                                        } ?: return@subAction
+
+                                        (this as? LeatherArmorMeta)?.setColor(appliedColor) ?:
+                                        (this as? PotionMeta)?.setColor(appliedColor) ?:
+                                        return@apply
                                     }
 
                                     gui.setItem(25, guiOutput)
