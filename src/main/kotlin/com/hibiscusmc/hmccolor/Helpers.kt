@@ -9,7 +9,7 @@ import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
-import io.th0rgal.oraxen.items.OraxenItems
+import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Bukkit.broadcastMessage
@@ -108,11 +108,11 @@ fun createGui(): Gui {
                                     val guiInput =
                                         click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
-                                    guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta.apply {
+                                    guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta?.apply {
                                         if (this is LeatherArmorMeta)
                                             this.setColor((subColor.itemStack.itemMeta as LeatherArmorMeta).color)
                                         else if (this is PotionMeta)
-                                            this.color = (subColor.itemStack.itemMeta as LeatherArmorMeta).color
+                                            this.color = (subColor.itemStack.itemMeta as PotionMeta).color
                                     }
 
                                     gui.setItem(25, guiOutput)
@@ -191,10 +191,11 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
         val list = mutableListOf<GuiItem>()
         val baseItem = getDefaultItem()
 
-        baseItem.itemMeta = (baseItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
-            setColor(baseColor.color.toColor())
+        baseItem.itemMeta = baseItem.itemMeta?.apply {
+            (this as? LeatherArmorMeta)?.setColor(baseColor.color.toColor())
+                ?: (this as? PotionMeta)?.setColor(baseColor.color.toColor()) ?: return@baseColor
             setDisplayName(baseColor.name.toLegacy())
-        }
+        } ?: return@baseColor
 
 
         // Make the ItemStacks for all subColors
@@ -212,9 +213,10 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
                 else -> getDefaultItem()
             }
 
-            subItem.itemMeta = (subItem.itemMeta as? LeatherArmorMeta ?: return@baseColor).apply {
+            subItem.itemMeta = subItem.itemMeta?.apply {
                 setDisplayName(color.name.toLegacy()) //TODO Make subColor a map and add option for name?
-                setColor(color.color.toColor())
+                (this as? LeatherArmorMeta)?.setColor(color.color.toColor())
+                    ?: (this as? PotionMeta)?.setColor(color.color.toColor()) ?: return@baseColor
             }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
@@ -230,7 +232,9 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
 }
 
 private fun getDefaultItem(): ItemStack {
-    val item = ItemStack(Material.valueOf(colorConfig.defaultItem ?: "LEATHER_HORSE_ARMOR"))
+    val material =
+        Material.getMaterial(colorConfig.defaultItem ?: "LEATHER_HORSE_ARMOR") ?: Material.LEATHER_HORSE_ARMOR
+    val item = ItemStack(material)
     item.itemMeta = item.itemMeta?.apply { setCustomModelData(colorConfig.customModelData) }
     return item
 }
