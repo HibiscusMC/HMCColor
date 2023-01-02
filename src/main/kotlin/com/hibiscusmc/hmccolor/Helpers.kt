@@ -9,6 +9,7 @@ import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
+import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -25,6 +26,11 @@ fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
 fun String.isOraxenItem() = OraxenItems.exists(this)
 fun String.getOraxenItem() = OraxenItems.getItemById(this).build()
 
+fun ItemStack.isCrucibleItem() = MythicCrucible().itemManager.getItem(this).isPresent
+fun ItemStack.getCrucibleId() = MythicCrucible().itemManager.getItem(this).get().internalName
+fun String.isCrucibleItem() = MythicCrucible().itemManager.getItem(this).isPresent
+fun String.getCrucibleItem() = MythicCrucible.core().itemManager.getItemStack(this)
+
 fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
 fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
 fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
@@ -40,6 +46,7 @@ fun Component.serialize() = mm.serialize(this)
 
 val isIALoaded = Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")
 val isOraxenLoaded = Bukkit.getPluginManager().isPluginEnabled("Oraxen")
+val isCrucibleLoaded = Bukkit.getPluginManager().isPluginEnabled("MythicCrucible")
 val isLootyLoaded = Bukkit.getPluginManager().isPluginEnabled("Looty")
 
 fun <T> T.logVal(message: String = ""): T =
@@ -59,6 +66,9 @@ private fun ItemStack.isDyeable(): Boolean {
     return when {
         isOraxenLoaded && this.isOraxenItem() ->
             this.getOraxenID() !in colorConfig.blacklistedOraxen
+
+        isCrucibleLoaded && this.isCrucibleItem() ->
+            this.getCrucibleId() !in colorConfig.blacklistedCrucible
 
         isIALoaded && this.isItemsAdderItem() ->
             this.getItemsAdderID() !in colorConfig.blacklistedItemsAdder
@@ -210,6 +220,9 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
             val subItem = when {
                 isOraxenLoaded && colorConfig.oraxenItem?.isOraxenItem() == true ->
                     colorConfig.oraxenItem?.getOraxenItem() ?: getDefaultItem()
+
+                isCrucibleLoaded && colorConfig.crucibleItem?.isCrucibleItem() == true ->
+                    colorConfig.crucibleItem?.getCrucibleItem() ?: getDefaultItem()
 
                 isIALoaded && colorConfig.itemsAdderItem?.isItemsAdderItem() == true ->
                     colorConfig.itemsAdderItem?.getItemsAdderStack() ?: getDefaultItem()

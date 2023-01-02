@@ -1,12 +1,15 @@
 title: "<gradient:#aa3159:#8c0c0c>HMCColor"
 buttons:
   #oraxen_item: something
+  #crucible_item: something
   #itemsadder_item: something:something
   default_type: LEATHER_HORSE_ARMOR #Can also be POTION to avoid conflicts with ModelEngine
   custom_model_data: 10 #Only important if using default_type
 blacklistedItems:
   oraxen_items:
     - banned_oraxen_id
+  crucible_items:
+    - banned_crucible_id
   itemsadder_items:
     - banned_itemsadder_id
   types:
