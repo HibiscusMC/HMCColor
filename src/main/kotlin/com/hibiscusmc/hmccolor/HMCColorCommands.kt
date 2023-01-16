@@ -2,7 +2,9 @@ package com.hibiscusmc.hmccolor
 
 import me.mattstudios.mf.annotations.*
 import me.mattstudios.mf.base.CommandBase
-import net.md_5.bungee.api.ChatColor
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 var colorConfig = HMCColorConfig()
@@ -10,26 +12,31 @@ var colorConfig = HMCColorConfig()
 @Command("hmccolor")
 class HMCColorCommands : CommandBase() {
 
+    val CONSOLE_ERROR_MSG = Component.text("This command can only be ran by players!").color(NamedTextColor.RED);
+
     @Default
     @Permission("hmccolor.command")
-    fun Player.defaultCommand() {
+    fun CommandSender.defaultCommand() {
         this.colorCommand()
     }
 
     @SubCommand("color")
     @Alias("dye")
-    fun Player.colorCommand() {
-        createGui().open(this)
+    fun CommandSender.colorCommand() {
+        (this as? Player)?.let { createGui().open(it) }
+            ?: Adventure.AUDIENCE.console().sendMessage(CONSOLE_ERROR_MSG)
     }
 
     @SubCommand("reload")
     @Permission("hmccolor.reload")
-    fun Player.reloadCommand() {
+    fun CommandSender.reloadCommand() {
         hmcColor.reloadConfig()
         colorConfig.reload()
         cachedDyeMap.clear()
         cachedDyeMap = getDyeColorList()
-        this.sendMessage("${ChatColor.GREEN}Successfully reloaded the config!")
+        cachedEffectSet.clear()
+        cachedEffectSet = getEffectList()
+        Adventure.AUDIENCE.sender(this).sendMessage(Component.text("Successfully reloaded the config!").color(NamedTextColor.GREEN))
     }
 
 }
