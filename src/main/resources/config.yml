@@ -5,6 +5,7 @@ buttons:
   #itemsadder_item: something:something
   default_type: LEATHER_HORSE_ARMOR #Can also be POTION to avoid conflicts with ModelEngine
   custom_model_data: 10 #Only important if using default_type
+
 blacklistedItems:
   oraxen_items:
     - banned_oraxen_id
@@ -14,6 +15,13 @@ blacklistedItems:
     - banned_itemsadder_id
   types:
     - LEATHER_CHESTPLATE
+
+enable_effects_menu: false
+effects:
+  space_effect:
+    name: "Space Effect"
+    color: "#FCFC00"
+
 colors:
   red:
     name: "<#D23635>Red"

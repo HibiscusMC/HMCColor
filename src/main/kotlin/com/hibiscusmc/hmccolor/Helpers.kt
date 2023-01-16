@@ -26,10 +26,10 @@ fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
 fun String.isOraxenItem() = OraxenItems.exists(this)
 fun String.getOraxenItem() = OraxenItems.getItemById(this).build()
 
-fun ItemStack.isCrucibleItem() = MythicCrucible().itemManager.getItem(this).isPresent
-fun ItemStack.getCrucibleId() = MythicCrucible().itemManager.getItem(this).get().internalName
-fun String.isCrucibleItem() = MythicCrucible().itemManager.getItem(this).isPresent
-fun String.getCrucibleItem() = MythicCrucible.core().itemManager.getItemStack(this)
+fun ItemStack.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
+fun ItemStack.getCrucibleId() = crucible.itemManager.getItem(this).get().internalName
+fun String.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
+fun String.getCrucibleItem() = MythicCrucible.core().itemManager. getItemStack(this)
 
 fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
 fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
@@ -41,8 +41,8 @@ fun ItemStack.getLootyID() = this.toSerializable().prefab
 fun String.isLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this)) != null
 fun String.getLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this))
 
-fun String.miniMsg() = mm.deserialize(this)
-fun Component.serialize() = mm.serialize(this)
+fun String.miniMsg() = Adventure.MINI_MESSAGE.deserialize(this)
+fun Component.serialize() = Adventure.MINI_MESSAGE.serialize(this)
 
 val isIALoaded = Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")
 val isOraxenLoaded = Bukkit.getPluginManager().isPluginEnabled("Oraxen")
@@ -82,6 +82,7 @@ private fun ItemStack.isDyeable(): Boolean {
 
 // Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
 fun createGui(): Gui {
+    var effectToggleState: Boolean = false
     val rows = 6
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
 
@@ -92,19 +93,35 @@ fun createGui(): Gui {
         else gui.setItem(rows - 2, index - 2, guiItem)
     }
 
+    // Effects toggle
+    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(getDefaultItem()) else null
+    effectItem?.let { gui.setItem(rows - 1, 6, it) }
+
     //TODO Add functionality for when you click the slots etc
     gui.guiItems.forEach { (_, clickedItem) ->
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
             when {
-                click.isShiftClick -> return@setAction
-                click.isLeftClick && clickedItem in cachedDyeMap.keys -> {
-                    val dyeMap = cachedDyeMap[clickedItem] ?: return@setAction
+                click.isShiftClick -> return@setAction//
+                click.isLeftClick && (clickedItem in cachedDyeMap.keys || effectItem?.let { it == clickedItem } ?: return@setAction) -> {
+                    val dyeMap: List<GuiItem> = when (clickedItem) {
+                        effectItem -> {
+                            effectToggleState = !effectToggleState
+                            if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull()
+                                ?: return@setAction
+                        }
+                        else -> {
+                            effectToggleState = false
+                            cachedDyeMap[clickedItem] ?: return@setAction
+                        }
+                    }
+
                     gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyeMap)
 
                     (46..52).forEachIndexed { index, i ->
                         gui.updateItem(
                             i, try {
+                                // if effect is toggled, we fill based on effect list, otherwise its a dye color
                                 dyeMap[index]
                             } catch (_: IndexOutOfBoundsException) {
                                 GuiItem(Material.AIR)
@@ -114,7 +131,7 @@ fun createGui(): Gui {
                         subColor.setAction subAction@{
                             when {
                                 it.isShiftClick -> return@subAction
-                                (click.isLeftClick && subColor in cachedDyeMap.values.flatten()) -> {
+                                (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
                                     val guiInput =
                                         click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
@@ -127,9 +144,8 @@ fun createGui(): Gui {
                                             }
                                         } ?: return@subAction
 
-                                        (this as? LeatherArmorMeta)?.setColor(appliedColor) ?:
-                                        (this as? PotionMeta)?.setColor(appliedColor) ?:
-                                        return@apply
+                                        (this as? LeatherArmorMeta)?.setColor(appliedColor)
+                                            ?: (this as? PotionMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
                                     gui.setItem(25, guiOutput)
@@ -168,7 +184,7 @@ fun createGui(): Gui {
                 gui.update()
             }
 
-            it.slot != 19 && it.slot != 25 -> it.isCancelled = true // Cancel any non input/output slot
+            it.slot !in setOf(19, 25, 41) -> it.isCancelled = true // Cancel any non input/output/effectToggle slot
             it.slot == 25 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
             it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
             it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
@@ -199,6 +215,20 @@ private fun String.toColor(): Color {
         //TODO Make this support text, probably through minimessage
         else -> return Color.WHITE
     }
+}
+
+fun getEffectList(): MutableSet<GuiItem> {
+    return colorConfig.effects.map effectColor@{ effect ->
+        val effectItem = getDefaultItem()
+
+        effectItem.itemMeta = effectItem.itemMeta?.apply {
+            (this as? LeatherArmorMeta)?.setColor(effect.color.toColor())
+                ?: (this as? PotionMeta)?.setColor(effect.color.toColor())
+            setDisplayName(effect.name.toLegacy())
+        }
+
+        GuiItem(effectItem)
+    }.toMutableSet()
 }
 
 fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {

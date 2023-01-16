@@ -1,13 +1,11 @@
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id ("org.jetbrains.kotlin.jvm") version "1.7.0"
+    id ("org.jetbrains.kotlin.jvm") version "1.7.20"
 }
 
 group = "com.hibiscusmc"
-version = "0.3-SNAPSHOT"
-description = "Write something here idk.\n"
-
+version = "0.4-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -32,6 +30,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("net.kyori:adventure-api:4.12.0")
     implementation("net.kyori:adventure-text-minimessage:4.12.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.2.0")
     implementation("dev.triumphteam:triumph-gui:3.1.4")
     implementation("me.mattstudios.utils:matt-framework:1.4.6")
 }
@@ -46,7 +45,7 @@ tasks {
     shadowJar {
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
         relocate("me.mattstudios.mf", "com.hibiscusmc.hmccolor.mf")
-        relocate("net.kyori.adventure", "com.hibiscusmc.hmccolor.adventure")
+        relocate("net.kyori", "com.hibiscusmc.hmccolor.kyori")
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.configurate")
         relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")
         archiveFileName.set("HMCColor.jar")
