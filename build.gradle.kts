@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.hibiscusmc"
-version = "0.3-SNAPSHOT"
+version = "0.4-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -42,14 +42,14 @@ java {
 val copyJar = project.findProperty("copyJar")
 val pluginPath = project.findProperty("hibiscusmc_plugin_path")
 tasks {
-    /*shadowJar {
-        *//*relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
+    shadowJar {
+        relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
         relocate("me.mattstudios.mf", "com.hibiscusmc.hmccolor.mf")
-        relocate("net.kyori.adventure", "com.hibiscusmc.hmccolor.adventure")
+        relocate("net.kyori", "com.hibiscusmc.hmccolor.kyori")
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.configurate")
-        relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")*//*
+        relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")
         archiveFileName.set("HMCColor.jar")
-    }*/
+    }
 
     if(copyJar != "false" && pluginPath != null) {
         register<Copy>("copyJar") {
