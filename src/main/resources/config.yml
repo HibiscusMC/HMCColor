@@ -17,6 +17,14 @@ blacklistedItems:
     - LEATHER_CHESTPLATE
 
 enable_effects_menu: false
+effect_item:
+  #oraxen_item: something
+  #crucible_item: something
+  #itemsadder_item: something:something
+  type: LEATHER_HORSE_ARMOR
+  name: "Effect Toggle"
+  color: "#FFFCFC"
+  custom_model_data: 11
 effects:
   space_effect:
     name: "Space Effect"

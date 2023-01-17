@@ -94,7 +94,7 @@ fun createGui(): Gui {
     }
 
     // Effects toggle
-    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(getDefaultItem()) else null
+    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(colorConfig.effectItem ?: getDefaultItem()) else null
     effectItem?.let { gui.setItem(rows - 1, 6, it) }
 
     //TODO Add functionality for when you click the slots etc
@@ -203,7 +203,7 @@ fun createGui(): Gui {
     return gui
 }
 
-private fun String.toColor(): Color {
+internal fun String.toColor(): Color {
     return when {
         this.startsWith("#") -> return Color.fromRGB(this.substring(1).toInt(16))
         this.startsWith("0x") -> return Color.fromRGB(this.substring(2).toInt(16))
