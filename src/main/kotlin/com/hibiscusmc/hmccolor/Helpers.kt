@@ -20,6 +20,9 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.PotionMeta
 import java.util.logging.Level
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 fun ItemStack.isOraxenItem() = OraxenItems.exists(this)
 fun ItemStack.getOraxenID() = OraxenItems.getIdByItem(this)
@@ -29,7 +32,7 @@ fun String.getOraxenItem() = OraxenItems.getItemById(this).build()
 fun ItemStack.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
 fun ItemStack.getCrucibleId() = crucible.itemManager.getItem(this).get().internalName
 fun String.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
-fun String.getCrucibleItem() = MythicCrucible.core().itemManager. getItemStack(this)
+fun String.getCrucibleItem() = MythicCrucible.core().itemManager.getItemStack(this)
 
 fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
 fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
@@ -82,20 +85,22 @@ private fun ItemStack.isDyeable(): Boolean {
 
 // Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
 fun createGui(): Gui {
-    var effectToggleState: Boolean = false
+    var effectToggleState = false
     val rows = 6
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
 
     // baseColor square
     cachedDyeMap.map { it.key }.forEachIndexed { index, guiItem ->
-        if (index < 3) gui.setItem(rows - 4, index + 4, guiItem)
-        else if (index < 6) gui.setItem(rows - 3, index + 1, guiItem)
-        else gui.setItem(rows - 2, index - 2, guiItem)
+        when {
+            index < 3 -> gui.setItem(rows - 5, index + 4, guiItem)
+            index < 6 -> gui.setItem(rows - 4, index + 1, guiItem)
+            else -> gui.setItem(rows - 3, index - 2, guiItem)
+        }
     }
 
     // Effects toggle
     val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(colorConfig.effectItem ?: getDefaultItem()) else null
-    effectItem?.let { gui.setItem(rows - 1, 6, it) }
+    effectItem?.let { gui.setItem(rows - 2, 5, it) }
 
     //TODO Add functionality for when you click the slots etc
     gui.guiItems.forEach { (_, clickedItem) ->
@@ -110,15 +115,19 @@ fun createGui(): Gui {
                             if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull()
                                 ?: return@setAction
                         }
+
                         else -> {
                             effectToggleState = false
                             cachedDyeMap[clickedItem] ?: return@setAction
                         }
                     }
 
-                    gui.filler.fillBetweenPoints(rows, 2, rows, 8, dyeMap)
-
-                    (46..52).forEachIndexed { index, i ->
+                    //Reset bottom
+                    (45..53).forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
+                    // Subtract 0.1 because we want to round down on .5
+                    val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
+                    val range = max(49 - offset, 46)..min(49 + offset, 52)
+                    range.forEachIndexed { index, i ->
                         gui.updateItem(
                             i, try {
                                 // if effect is toggled, we fill based on effect list, otherwise its a dye color
@@ -133,7 +142,7 @@ fun createGui(): Gui {
                                 it.isShiftClick -> return@subAction
                                 (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
                                     val guiInput =
-                                        click.inventory.getItem(19)?.let { it1 -> GuiItem(it1) } ?: return@subAction
+                                        click.inventory.getItem(10)?.let { it1 -> GuiItem(it1) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
                                     guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta?.apply {
                                         val appliedColor = subColor.itemStack.itemMeta?.let { meta ->
@@ -148,15 +157,15 @@ fun createGui(): Gui {
                                             ?: (this as? PotionMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
-                                    gui.setItem(25, guiOutput)
-                                    gui.updateItem(25, guiOutput)
+                                    gui.setItem(16, guiOutput)
+                                    gui.updateItem(16, guiOutput)
                                     guiOutput.setAction output@{ click ->
                                         when {
                                             click.cursor?.type == Material.AIR && click.currentItem != null -> {
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
                                                 else click.whoClicked.inventory.addItem(click.currentItem)
-                                                gui.updateItem(20, ItemStack(Material.AIR))
-                                                gui.updateItem(25, ItemStack(Material.AIR))
+                                                gui.updateItem(10, ItemStack(Material.AIR))
+                                                gui.updateItem(16, ItemStack(Material.AIR))
                                                 gui.update()
                                             }
                                         }
@@ -179,20 +188,20 @@ fun createGui(): Gui {
         when {
             it.slot == 19 && it.whoClicked.itemOnCursor.type == Material.AIR -> {
                 it.whoClicked.setItemOnCursor(it.inventory.getItem(19))
-                gui.updateItem(20, ItemStack(Material.AIR))
-                gui.updateItem(25, ItemStack(Material.AIR))
+                gui.updateItem(10, ItemStack(Material.AIR))
+                gui.updateItem(16, ItemStack(Material.AIR))
                 gui.update()
             }
 
-            it.slot !in setOf(19, 25, 41) -> it.isCancelled = true // Cancel any non input/output/effectToggle slot
-            it.slot == 25 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
+            it.slot !in setOf(10, 16, 32) -> it.isCancelled = true // Cancel any non input/output/effectToggle slot
+            it.slot == 16 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
             it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
             it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
         }
     }
 
     gui.setCloseGuiAction {
-        val inputItem = it.inventory.getItem(19) ?: return@setCloseGuiAction
+        val inputItem = it.inventory.getItem(10) ?: return@setCloseGuiAction
 
         if (it.player.inventory.firstEmpty() != -1) {
             it.player.inventory.addItem(inputItem)

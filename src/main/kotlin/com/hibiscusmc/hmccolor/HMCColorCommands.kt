@@ -30,11 +30,10 @@ class HMCColorCommands : CommandBase() {
     @SubCommand("reload")
     @Permission("hmccolor.reload")
     fun CommandSender.reloadCommand() {
-        hmcColor.reloadConfig()
-        colorConfig.reload()
         cachedDyeMap.clear()
-        cachedDyeMap = getDyeColorList()
         cachedEffectSet.clear()
+        colorConfig.reload()
+        cachedDyeMap = getDyeColorList()
         cachedEffectSet = getEffectList()
         Adventure.AUDIENCE.sender(this).sendMessage(Component.text("Successfully reloaded the config!").color(NamedTextColor.GREEN))
     }

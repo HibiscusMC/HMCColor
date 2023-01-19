@@ -6,8 +6,8 @@ import me.mattstudios.mf.base.CommandManager
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
-val hmcColor = Bukkit.getPluginManager().getPlugin("HMCColor") as HMCColor
-val crucible = Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible
+val hmcColor by lazy { Bukkit.getPluginManager().getPlugin("HMCColor") as HMCColor }
+val crucible by lazy { Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible }
 var cachedDyeMap = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 var cachedEffectSet = mutableSetOf<GuiItem>()
 class HMCColor : JavaPlugin() {
