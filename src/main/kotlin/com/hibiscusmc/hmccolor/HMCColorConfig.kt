@@ -5,6 +5,7 @@ import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
+import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.inventory.meta.PotionMeta
 
 // Just to make the code abit prettier :)
@@ -31,7 +32,8 @@ class HMCColorConfig {
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")?.getColors() ?: emptySet()
     val effectItem = config.getConfigurationSection("effect_item")?.getEffectItem()
-    val effects = if (effectsEnabled) config.getConfigurationSection("effects")?.getEffectsColors() ?: emptySet() else emptySet()
+    val effects =
+        if (effectsEnabled) config.getConfigurationSection("effects")?.getEffectsColors() ?: emptySet() else emptySet()
 
     fun reload() {
         hmcColor.reloadConfig()
@@ -63,9 +65,9 @@ class HMCColorConfig {
 
         val itemStack = ItemStack(Material.AIR)
         val type = this.getString("type", "LEATHER_HORSE_ARMOR") ?: "LEATHER_HORSE_ARMOR"
-        val material = if (type !in Material.values().map { it.name })
-            Material.LEATHER_HORSE_ARMOR
-        else Material.valueOf(type)
+        val material =
+            if (type !in Material.values().map { it.name }) Material.LEATHER_HORSE_ARMOR
+            else Material.valueOf(type)
         val name = this.getString("name", "")
         val color = this.getString("color", "#FFFFFF")?.toColor()
         val cmd = this.getInt("custom_model_data", customModelData ?: 0)
@@ -76,6 +78,7 @@ class HMCColorConfig {
             color?.let {
                 (this as? LeatherArmorMeta)?.setColor(color)
                     ?: (this as? PotionMeta)?.setColor(color)
+                    ?: (this as? MapMeta)?.setColor(color)
             }
             setCustomModelData(cmd)
         }
