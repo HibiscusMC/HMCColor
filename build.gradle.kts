@@ -48,6 +48,7 @@ tasks {
         relocate("net.kyori", "com.hibiscusmc.hmccolor.kyori")
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.configurate")
         relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")
+        relocate("kotlin", "com.hibiscusmc.hmccolor.kotlin")
         archiveFileName.set("HMCColor.jar")
     }
 
