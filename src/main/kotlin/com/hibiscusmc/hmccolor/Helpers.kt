@@ -18,6 +18,7 @@ import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
+import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.inventory.meta.PotionMeta
 import java.util.logging.Level
 import kotlin.math.max
@@ -41,8 +42,8 @@ fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
 
 fun ItemStack.isLootyItem() = this.toGearyFromUUIDOrNull() != null
 fun ItemStack.getLootyID() = this.toSerializable().prefab
-fun String.isLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this)) != null
-fun String.getLootyItem() = LootyFactory.createFromPrefab(PrefabKey.of(this))
+fun String.isLootyItem() = PrefabKey.ofOrNull(this)?.let { LootyFactory.createFromPrefab(it) } != null
+fun String.getLootyItem() = PrefabKey.ofOrNull(this)?.let { LootyFactory.createFromPrefab(it) }
 
 fun String.miniMsg() = Adventure.MINI_MESSAGE.deserialize(this)
 fun Component.serialize() = Adventure.MINI_MESSAGE.serialize(this)
@@ -65,7 +66,7 @@ fun ItemStack.setCustomModelData(int: Int): ItemStack {
 }
 
 private fun ItemStack.isDyeable(): Boolean {
-    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta) return false
+    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta && itemMeta !is MapMeta) return false
     return when {
         isOraxenLoaded && this.isOraxenItem() ->
             this.getOraxenID() !in colorConfig.blacklistedOraxen
@@ -149,12 +150,14 @@ fun createGui(): Gui {
                                             when (meta) {
                                                 is LeatherArmorMeta -> meta.color
                                                 is PotionMeta -> meta.color
+                                                is MapMeta -> meta.color
                                                 else -> null
                                             }
                                         } ?: return@subAction
 
                                         (this as? LeatherArmorMeta)?.setColor(appliedColor)
-                                            ?: (this as? PotionMeta)?.setColor(appliedColor) ?: return@apply
+                                            ?: (this as? PotionMeta)?.setColor(appliedColor)
+                                            ?: (this as? MapMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
                                     gui.setItem(16, guiOutput)
@@ -229,10 +232,11 @@ internal fun String.toColor(): Color {
 fun getEffectList(): MutableSet<GuiItem> {
     return colorConfig.effects.map effectColor@{ effect ->
         val effectItem = getDefaultItem()
-
+        val color = effect.color.toColor()
         effectItem.itemMeta = effectItem.itemMeta?.apply {
-            (this as? LeatherArmorMeta)?.setColor(effect.color.toColor())
-                ?: (this as? PotionMeta)?.setColor(effect.color.toColor())
+            (this as? LeatherArmorMeta)?.setColor(color)
+                ?: (this as? PotionMeta)?.setColor(color)
+                ?: (this as? MapMeta)?.setColor(color)
             setDisplayName(effect.name.toLegacy())
         }
 
@@ -248,14 +252,16 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
         val baseItem = getDefaultItem()
 
         baseItem.itemMeta = baseItem.itemMeta?.apply {
-            (this as? LeatherArmorMeta)?.setColor(baseColor.color.toColor())
-                ?: (this as? PotionMeta)?.setColor(baseColor.color.toColor()) ?: return@baseColor
+            val color = baseColor.color.toColor()
+            (this as? LeatherArmorMeta)?.setColor(color)
+                ?: (this as? PotionMeta)?.setColor(color)
+                ?: (this as? MapMeta)?.setColor(color) ?: return@baseColor
             setDisplayName(baseColor.name.toLegacy())
         } ?: return@baseColor
 
 
         // Make the ItemStacks for all subColors
-        subColors.forEach subColor@{ color ->
+        subColors.forEach subColor@{ subColor ->
             val subItem = when {
                 isOraxenLoaded && colorConfig.oraxenItem?.isOraxenItem() == true ->
                     colorConfig.oraxenItem?.getOraxenItem() ?: getDefaultItem()
@@ -273,9 +279,11 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
             }
 
             subItem.itemMeta = subItem.itemMeta?.apply {
-                setDisplayName(color.name.toLegacy()) //TODO Make subColor a map and add option for name?
-                (this as? LeatherArmorMeta)?.setColor(color.color.toColor())
-                    ?: (this as? PotionMeta)?.setColor(color.color.toColor()) ?: return@baseColor
+                setDisplayName(subColor.name.toLegacy())
+                val color = subColor.color.toColor()
+                (this as? LeatherArmorMeta)?.setColor(color)
+                    ?: (this as? PotionMeta)?.setColor(color)
+                    ?: (this as? MapMeta)?.setColor(color) ?: return@baseColor
             }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
