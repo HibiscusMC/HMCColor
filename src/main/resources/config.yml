@@ -1,10 +1,10 @@
 title: "<gradient:#aa3159:#8c0c0c>HMCColor"
 buttons:
-  #oraxen_item: something
+  #oraxen_item: paintbrush
   #crucible_item: something
-  #itemsadder_item: something:something
+  #itemsadder_item: hmccosmetics:paintbrush
   default_type: LEATHER_HORSE_ARMOR #Can also be POTION to avoid conflicts with ModelEngine
-  custom_model_data: 10 #Only important if using default_type
+  custom_model_data: 1 #Only important if using default_type
 
 blacklistedItems:
   oraxen_items:
