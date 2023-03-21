@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.inventory.meta.PotionMeta
+import org.bukkit.inventory.meta.FireworkMeta
 
 // Just to make the code abit prettier :)
 data class Effects(val name: String, val color: String)
@@ -79,6 +80,7 @@ class HMCColorConfig {
                 (this as? LeatherArmorMeta)?.setColor(color)
                     ?: (this as? PotionMeta)?.setColor(color)
                     ?: (this as? MapMeta)?.setColor(color)
+                    ?: (this as? FireworkMeta)?.setColor(color)
             }
             setCustomModelData(cmd)
         }
@@ -116,5 +118,3 @@ class HMCColorConfig {
         return colors
     }
 }
-
-
