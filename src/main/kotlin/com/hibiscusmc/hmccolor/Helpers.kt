@@ -19,6 +19,7 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
+import org.bukkit.inventory.meta.FireworkMeta
 import org.bukkit.inventory.meta.PotionMeta
 import java.util.logging.Level
 
@@ -63,7 +64,7 @@ fun ItemStack.setCustomModelData(int: Int): ItemStack {
 }
 
 private fun ItemStack.isDyeable(): Boolean {
-    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta && itemMeta !is MapMeta) return false
+    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta && itemMeta !is MapMeta && itemMeta !is FireworkMeta) return false
     return when {
         isOraxenLoaded && this.isOraxenItem() ->
             this.getOraxenID() !in colorConfig.blacklistedOraxen
@@ -143,13 +144,15 @@ fun createGui(): Gui {
                                                 is LeatherArmorMeta -> meta.color
                                                 is PotionMeta -> meta.color
                                                 is MapMeta -> meta.color
+                                                is FireworkMeta -> meta.color
                                                 else -> null
                                             }
                                         } ?: return@subAction
 
                                         (this as? LeatherArmorMeta)?.setColor(appliedColor)
                                             ?: (this as? PotionMeta)?.setColor(appliedColor)
-                                            ?: (this as? MapMeta)?.setColor(appliedColor) ?: return@apply
+                                            ?: (this as? MapMeta)?.setColor(appliedColor) 
+                                            ?: (this as? FireworkMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
                                     gui.setItem(25, guiOutput)
@@ -229,6 +232,7 @@ fun getEffectList(): MutableSet<GuiItem> {
             (this as? LeatherArmorMeta)?.setColor(color)
                 ?: (this as? PotionMeta)?.setColor(color)
                 ?: (this as? MapMeta)?.setColor(color)
+                ?: (this as? FireworkMeta)?.setColor(color)
             setDisplayName(effect.name.toLegacy())
         }
 
@@ -247,7 +251,8 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
             val color = baseColor.color.toColor()
             (this as? LeatherArmorMeta)?.setColor(color)
                 ?: (this as? PotionMeta)?.setColor(color)
-                ?: (this as? MapMeta)?.setColor(color) ?: return@baseColor
+                ?: (this as? MapMeta)?.setColor(color)
+                ?: (this as? FireworkMeta)?.setColor(color) ?: return@baseColor
             setDisplayName(baseColor.name.toLegacy())
         } ?: return@baseColor
 
@@ -275,7 +280,8 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
                 val color = subColor.color.toColor()
                 (this as? LeatherArmorMeta)?.setColor(color)
                     ?: (this as? PotionMeta)?.setColor(color)
-                    ?: (this as? MapMeta)?.setColor(color) ?: return@baseColor
+                    ?: (this as? MapMeta)?.setColor(color)
+                    ?: (this as? FireworkMeta)?.setColor(color) ?: return@baseColor
             }
 
             if (list.size >= 7) return@subColor // Only allow for 7 subColor options
