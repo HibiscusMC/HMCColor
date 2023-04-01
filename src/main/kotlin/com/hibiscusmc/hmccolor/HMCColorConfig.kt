@@ -9,7 +9,7 @@ import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.inventory.meta.PotionMeta
 
 // Just to make the code abit prettier :)
-data class Effects(val name: String, val color: String)
+data class Effects(val name: String, val color: String, val permission: String? = null)
 data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>)
 data class BaseColor(val name: String, val color: String)
 data class SubColor(val name: String, val color: String)
@@ -32,8 +32,7 @@ class HMCColorConfig {
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")?.getColors() ?: emptySet()
     val effectItem = config.getConfigurationSection("effect_item")?.getEffectItem()
-    val effects =
-        if (effectsEnabled) config.getConfigurationSection("effects")?.getEffectsColors() ?: emptySet() else emptySet()
+    val effects = if (effectsEnabled) config.getConfigurationSection("effects")?.getEffectsColors() ?: emptySet() else emptySet()
 
     fun reload() {
         hmcColor.reloadConfig()
@@ -41,26 +40,21 @@ class HMCColorConfig {
     }
 
     private fun ConfigurationSection.getEffectItem(): ItemStack {
-        val itemsadder = this.getString("itemsadder_item")
-        val oraxen = this.getString("oraxen_item")
-        val lootyitem = this.getString("looty_item")
-        val crucibleitem = this.getString("crucible_item")
-
-        itemsadder?.let {
-            if (isIALoaded && itemsadder.isItemsAdderItem())
-                return itemsadder.getItemsAdderStack()!!
+        this.getString("oraxen_item")?.let {
+            if (isOraxenLoaded && it.isOraxenItem())
+                return it.getOraxenItem()!!
         }
-        oraxen?.let {
-            if (isOraxenLoaded && oraxen.isOraxenItem())
-                return oraxen.getOraxenItem()!!
+        this.getString("looty_item")?.let {
+            if (isLootyLoaded && it.isLootyItem())
+                return it.getLootyItem()!!
         }
-        lootyitem?.let {
-            if (isLootyLoaded && lootyitem.isLootyItem())
-                return lootyitem.getLootyItem()!!
+        this.getString("itemsadder_item")?.let {
+            if (isIALoaded && it.isItemsAdderItem())
+                return it.getItemsAdderStack()!!
         }
-        crucibleitem?.let {
-            if (isCrucibleLoaded && crucibleitem.isCrucibleItem())
-                return crucibleitem.getCrucibleItem()!!
+        this.getString("crucible_item")?.let {
+            if (isCrucibleLoaded && it.isCrucibleItem())
+                return it.getCrucibleItem()!!
         }
 
         val itemStack = ItemStack(Material.AIR)
@@ -89,7 +83,7 @@ class HMCColorConfig {
     private fun ConfigurationSection.getEffectsColors(): Set<Effects> {
         return this.getKeys(false).map {
             this.getConfigurationSection(it).let { c ->
-                Effects(c?.getString("name", "") ?: "", c?.getString("color") ?: "#FFFFFF")
+                Effects(c?.getString("name", "") ?: "", c?.getString("color") ?: "#FFFFFF", c?.getString("permission"))
             }
         }.toSet()
     }

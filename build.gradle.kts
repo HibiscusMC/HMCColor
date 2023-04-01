@@ -4,8 +4,9 @@ plugins {
     id ("org.jetbrains.kotlin.jvm") version "1.7.20"
 }
 
+val pluginVersion: String by project
 group = "com.hibiscusmc"
-version = "0.4-SNAPSHOT"
+version = pluginVersion
 
 repositories {
     mavenCentral()
@@ -15,10 +16,11 @@ repositories {
     maven("https://repo.mineinabyss.com/releases")
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://jitpack.io")
+    maven("https://repo.mineinabyss.com/releases")
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("com.github.oraxen:oraxen:-SNAPSHOT")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.2.5")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
@@ -28,11 +30,13 @@ dependencies {
     compileOnly("com.mineinabyss:looty:0.8.67")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("net.kyori:adventure-api:4.12.0")
-    implementation("net.kyori:adventure-text-minimessage:4.12.0")
-    implementation("net.kyori:adventure-platform-bukkit:4.2.0")
+    implementation("net.kyori:adventure-api:4.13.0")
+    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("dev.triumphteam:triumph-gui:3.1.4")
     implementation("me.mattstudios.utils:matt-framework:1.4.6")
+    implementation("com.mineinabyss:idofront-commands:0.16.10")
+    implementation("com.mineinabyss:idofront-config:0.16.10")
 }
 
 java {
@@ -49,7 +53,8 @@ tasks {
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.configurate")
         relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")
         relocate("kotlin", "com.hibiscusmc.hmccolor.kotlin")
-        archiveFileName.set("HMCColor.jar")
+        relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.idofront")
+        archiveFileName.set("HMCColor-${pluginVersion}.jar")
     }
 
     if(copyJar != "false" && pluginPath != null) {

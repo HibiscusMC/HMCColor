@@ -108,7 +108,7 @@ fun createGui(): Gui {
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
             when {
-                click.isShiftClick -> return@setAction//
+                click.isShiftClick -> return@setAction
                 click.isLeftClick && (clickedItem in cachedDyeMap.keys || effectItem?.let { it == clickedItem } ?: return@setAction) -> {
                     val dyeMap: List<GuiItem> = when (clickedItem) {
                         effectItem -> {
@@ -142,9 +142,9 @@ fun createGui(): Gui {
                             when {
                                 it.isShiftClick -> return@subAction
                                 (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
-                                    val guiInput =
-                                        click.inventory.getItem(10)?.let { it1 -> GuiItem(it1) } ?: return@subAction
+                                    val guiInput = click.inventory.getItem(10)?.let { i -> GuiItem(i) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
+
                                     guiOutput.itemStack.itemMeta = guiOutput.itemStack.itemMeta?.apply {
                                         val appliedColor = subColor.itemStack.itemMeta?.let { meta ->
                                             when (meta) {
@@ -154,6 +154,12 @@ fun createGui(): Gui {
                                                 else -> null
                                             }
                                         } ?: return@subAction
+
+                                        colorConfig.effects.find { e -> e.color.toColor() == appliedColor }?.let { effect ->
+                                            effect.permission?.let { perm ->
+                                                if (!click.whoClicked.hasPermission(perm)) return@subAction
+                                            }
+                                        }
 
                                         (this as? LeatherArmorMeta)?.setColor(appliedColor)
                                             ?: (this as? PotionMeta)?.setColor(appliedColor)
