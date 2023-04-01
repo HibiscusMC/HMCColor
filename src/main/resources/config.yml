@@ -29,6 +29,7 @@ effects:
   space_effect:
     name: "Space Effect"
     color: "#FCFC00"
+    permission: "hmccolor.effect.space"
 
 colors:
   red:
