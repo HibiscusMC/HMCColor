@@ -103,7 +103,7 @@ fun createGui(): Gui {
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
             when {
-                click.isShiftClick -> return@setAction
+                click.isCancelled || click.isShiftClick -> return@setAction
                 click.isLeftClick && (clickedItem in cachedDyeMap.keys || effectItem?.let { it == clickedItem } ?: return@setAction) -> {
                     val dyeMap: List<GuiItem> = when (clickedItem) {
                         effectItem -> {
@@ -132,7 +132,7 @@ fun createGui(): Gui {
                         val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
                         subColor.setAction subAction@{
                             when {
-                                it.isShiftClick -> return@subAction
+                                it.isCancelled || it.isShiftClick -> return@subAction
                                 (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
                                     val guiInput = click.inventory.getItem(19)?.let { i -> GuiItem(i) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
@@ -162,6 +162,7 @@ fun createGui(): Gui {
                                     gui.updateItem(25, guiOutput)
                                     guiOutput.setAction output@{ click ->
                                         when {
+                                            click.isCancelled -> return@output
                                             click.cursor?.type == Material.AIR && click.currentItem != null -> {
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
                                                 else click.whoClicked.inventory.addItem(click.currentItem)
