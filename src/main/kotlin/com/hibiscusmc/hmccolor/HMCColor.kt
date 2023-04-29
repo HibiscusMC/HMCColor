@@ -1,5 +1,6 @@
 package com.hibiscusmc.hmccolor
 
+import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import me.mattstudios.mf.base.CommandManager
@@ -21,6 +22,10 @@ class HMCColor : JavaPlugin() {
     }
 
     override fun onDisable() {
-        //cachedDyeMap.clear()
+        server.onlinePlayers.forEach {
+            if (it.openInventory.topInventory.holder is Gui) {
+                it.closeInventory()
+            }
+        }
     }
 }

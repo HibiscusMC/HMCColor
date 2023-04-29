@@ -107,7 +107,6 @@ fun createGui(): Gui {
 
     // Effects toggle
     val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(colorConfig.effectItem ?: getDefaultItem()) else null
-    broadcastMessage(effectItem?.itemStack.toString())
     effectItem?.let { gui.setItem(colorConfig.effectButtonSlot, it) }
 
     gui.guiItems.forEach { (_, clickedItem) ->
@@ -203,40 +202,40 @@ fun createGui(): Gui {
 
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
-    gui.setPlayerInventoryAction {
-        if (it.isShiftClick) {
-            val inputStack = gui.getGuiItem(10)?.itemStack
-            if (inputStack?.type?.isAir == true && it.currentItem?.isDyeable() == true) {
-                it.isCancelled = true
-                gui.updateItem(10, GuiItem(it.currentItem!!))
+    gui.setPlayerInventoryAction { click ->
+        if (click.isShiftClick) {
+            val inputStack = gui.getGuiItem(colorConfig.inputSlot)?.itemStack
+            if (inputStack == null || inputStack.type.isAir && click.currentItem?.isDyeable() == true) {
+                click.isCancelled = true
+                gui.updateItem(colorConfig.inputSlot, GuiItem(click.currentItem!!))
                 gui.update()
-                it.whoClicked.inventory.setItem(it.slot, ItemStack(Material.AIR))
-            }
+                click.whoClicked.inventory.setItem(click.slot, ItemStack(Material.AIR))
+            } else click.isCancelled = true
         }
     }
-    gui.setDefaultTopClickAction {
+    gui.setDefaultTopClickAction { click ->
         when {
-            it.slot == 10 && it.whoClicked.itemOnCursor.type == Material.AIR && it.currentItem != null -> {
-                it.isCancelled = true
-                it.whoClicked.setItemOnCursor(it.inventory.getItem(10))
-                gui.updateItem(10, ItemStack(Material.AIR))
-                gui.updateItem(16, ItemStack(Material.AIR))
+            click.slot == colorConfig.inputSlot && click.whoClicked.itemOnCursor.type == Material.AIR && click.currentItem != null -> {
+                click.isCancelled = true
+                click.whoClicked.setItemOnCursor(click.inventory.getItem(10))
+                gui.updateItem(colorConfig.inputSlot, ItemStack(Material.AIR))
+                gui.updateItem(colorConfig.outputSlot, ItemStack(Material.AIR))
                 gui.update()
             }
 
-            it.slot !in setOf(10, 16, 32) -> it.isCancelled = true // Cancel any non input/output/effectToggle slot
-            it.slot == 16 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
-            it.slot != 16 && it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
-            it.cursor?.type?.isAir == false && it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
+            click.slot !in colorConfig.let { c -> setOf(c.inputSlot, c.outputSlot, c.effectButtonSlot) } -> click.isCancelled = true // Cancel any non input/output/effectToggle slot
+            click.slot == 16 && click.currentItem == null -> click.isCancelled = true // Cancel adding items to empty output slot
+            click.slot != 16 && click.isShiftClick -> click.isCancelled = true // Cancel everything but leftClick action
+            click.cursor?.type?.isAir == false && click.cursor?.isDyeable() == false -> click.isCancelled = true // Cancel adding non-dyeable or banned items
         }
     }
 
-    gui.setCloseGuiAction {
-        val inputItem = it.inventory.getItem(10) ?: return@setCloseGuiAction
+    gui.setCloseGuiAction { click ->
+        val inputItem = click.inventory.getItem(10) ?: return@setCloseGuiAction
 
-        if (it.player.inventory.firstEmpty() != -1) {
-            it.player.inventory.addItem(inputItem)
-        } else it.player.world.dropItemNaturally(it.player.location, inputItem)
+        if (click.player.inventory.firstEmpty() != -1) {
+            click.player.inventory.addItem(inputItem)
+        } else click.player.world.dropItemNaturally(click.player.location, inputItem)
     }
 
 
