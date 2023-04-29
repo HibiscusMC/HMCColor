@@ -1,5 +1,6 @@
 package com.hibiscusmc.hmccolor
 
+import dev.triumphteam.gui.guis.Gui
 import me.mattstudios.mf.annotations.*
 import me.mattstudios.mf.base.CommandBase
 import net.kyori.adventure.text.Component
@@ -30,6 +31,11 @@ class HMCColorCommands : CommandBase() {
     @SubCommand("reload")
     @Permission("hmccolor.reload")
     fun CommandSender.reloadCommand() {
+        server.onlinePlayers.forEach {
+            if (it.openInventory.topInventory.holder is Gui) {
+                it.closeInventory()
+            }
+        }
         cachedDyeMap.clear()
         cachedEffectSet.clear()
         colorConfig.reload()
