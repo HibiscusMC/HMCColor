@@ -91,19 +91,25 @@ fun createGui(): Gui {
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(colorConfig.title.miniMsg()).create()
 
     // baseColor square
-    cachedDyeMap.map { it.key }.forEachIndexed { index, guiItem ->
-        when {
-            index < 3 -> gui.setItem(rows - 5, index + 4, guiItem)
-            index < 6 -> gui.setItem(rows - 4, index + 1, guiItem)
-            else -> gui.setItem(rows - 3, index - 2, guiItem)
+    //TODO base of of config values
+
+    colorConfig.baseColorGrid.let {
+        it.first.forEachIndexed { index, int ->
+            gui.setItem(int, cachedDyeMap.keys.elementAt(index))
+        }
+        it.second.forEachIndexed { index, int ->
+            gui.setItem(int, cachedDyeMap.keys.elementAt(index + 3))
+        }
+        it.third.forEachIndexed { index, int ->
+            gui.setItem(int, cachedDyeMap.keys.elementAt(index + 6))
         }
     }
 
     // Effects toggle
     val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(colorConfig.effectItem ?: getDefaultItem()) else null
-    effectItem?.let { gui.setItem(rows - 2, 5, it) }
+    broadcastMessage(effectItem?.itemStack.toString())
+    effectItem?.let { gui.setItem(colorConfig.effectButtonSlot, it) }
 
-    //TODO Add functionality for when you click the slots etc
     gui.guiItems.forEach { (_, clickedItem) ->
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
@@ -123,11 +129,14 @@ fun createGui(): Gui {
                         }
                     }
 
+
                     //Reset bottom
-                    (45..53).forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
+                    colorConfig.subColorRow.forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
+                    // Find the middle of given IntRange
+                    val middleSubColor = colorConfig.subColorRow.first + colorConfig.subColorRow.count() / 2
                     // Subtract 0.1 because we want to round down on .5
                     val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
-                    val range = max(49 - offset, 46)..min(49 + offset, 52)
+                    val range = max(middleSubColor - offset, colorConfig.subColorRow.first)..min(middleSubColor + offset, colorConfig.subColorRow.last)
                     range.forEachIndexed { index, i ->
                         gui.updateItem(
                             i, try {
@@ -166,8 +175,8 @@ fun createGui(): Gui {
                                             ?: (this as? MapMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
-                                    gui.setItem(16, guiOutput)
-                                    gui.updateItem(16, guiOutput)
+                                    gui.setItem(colorConfig.outputSlot, guiOutput)
+                                    gui.updateItem(colorConfig.outputSlot, guiOutput)
                                     guiOutput.setAction output@{ click ->
                                         when {
                                             click.isCancelled -> return@output
@@ -175,8 +184,8 @@ fun createGui(): Gui {
                                                 click.isCancelled = true
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
                                                 else click.whoClicked.inventory.addItem(click.currentItem)
-                                                gui.updateItem(10, ItemStack(Material.AIR))
-                                                gui.updateItem(16, ItemStack(Material.AIR))
+                                                gui.updateItem(colorConfig.inputSlot, ItemStack(Material.AIR))
+                                                gui.updateItem(colorConfig.outputSlot, ItemStack(Material.AIR))
                                                 gui.update()
                                             }
                                         }
