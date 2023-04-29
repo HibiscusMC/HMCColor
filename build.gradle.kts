@@ -21,8 +21,8 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:-SNAPSHOT")
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.2.5")
+    compileOnly("com.github.oraxen:oraxen:1.155.3")
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1-r4")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:idofront:0.12.111")
