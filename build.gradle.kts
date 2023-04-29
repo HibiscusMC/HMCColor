@@ -46,6 +46,14 @@ java {
 val copyJar = project.findProperty("copyJar")
 val pluginPath = project.findProperty("hibiscusmc_plugin_path")
 tasks {
+
+    jar {
+        filesMatching(arrayOf("plugin.yml").asIterable()) {
+            expand(mapOf("version" to pluginVersion))
+        }
+    }
+
+
     shadowJar {
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
         relocate("me.mattstudios.mf", "com.hibiscusmc.hmccolor.mf")
