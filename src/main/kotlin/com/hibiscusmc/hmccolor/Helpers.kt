@@ -108,13 +108,13 @@ fun createGui(): Gui {
         clickedItem.setAction { click ->
             // Logic for clicking a baseColor to show all subColors
             when {
-                click.isCancelled || click.isShiftClick -> return@setAction
+                click.isShiftClick -> return@setAction
                 click.isLeftClick && (clickedItem in cachedDyeMap.keys || effectItem?.let { it == clickedItem } ?: return@setAction) -> {
                     val dyeMap: List<GuiItem> = when (clickedItem) {
                         effectItem -> {
                             effectToggleState = !effectToggleState
-                            if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull()
-                                ?: return@setAction
+                            if (effectToggleState) cachedEffectSet.toList()
+                            else cachedDyeMap.values.firstOrNull() ?: return@setAction
                         }
 
                         else -> {
@@ -140,7 +140,7 @@ fun createGui(): Gui {
                         val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
                         subColor.setAction subAction@{
                             when {
-                                it.isCancelled || it.isShiftClick -> return@subAction
+                                it.isShiftClick -> return@subAction
                                 (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
                                     val guiInput = click.inventory.getItem(10)?.let { i -> GuiItem(i) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
@@ -172,6 +172,7 @@ fun createGui(): Gui {
                                         when {
                                             click.isCancelled -> return@output
                                             click.cursor?.type == Material.AIR && click.currentItem != null -> {
+                                                click.isCancelled = true
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
                                                 else click.whoClicked.inventory.addItem(click.currentItem)
                                                 gui.updateItem(10, ItemStack(Material.AIR))
@@ -193,11 +194,22 @@ fun createGui(): Gui {
 
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
-    gui.setPlayerInventoryAction { if (it.isShiftClick) it.isCancelled = true }
+    gui.setPlayerInventoryAction {
+        if (it.isShiftClick) {
+            val inputStack = gui.getGuiItem(10)?.itemStack
+            if (inputStack?.type?.isAir == true && it.currentItem?.isDyeable() == true) {
+                it.isCancelled = true
+                gui.updateItem(10, GuiItem(it.currentItem!!))
+                gui.update()
+                it.whoClicked.inventory.setItem(it.slot, ItemStack(Material.AIR))
+            }
+        }
+    }
     gui.setDefaultTopClickAction {
         when {
-            it.slot == 19 && it.whoClicked.itemOnCursor.type == Material.AIR -> {
-                it.whoClicked.setItemOnCursor(it.inventory.getItem(19))
+            it.slot == 10 && it.whoClicked.itemOnCursor.type == Material.AIR && it.currentItem != null -> {
+                it.isCancelled = true
+                it.whoClicked.setItemOnCursor(it.inventory.getItem(10))
                 gui.updateItem(10, ItemStack(Material.AIR))
                 gui.updateItem(16, ItemStack(Material.AIR))
                 gui.update()
@@ -205,8 +217,8 @@ fun createGui(): Gui {
 
             it.slot !in setOf(10, 16, 32) -> it.isCancelled = true // Cancel any non input/output/effectToggle slot
             it.slot == 16 && it.currentItem == null -> it.isCancelled = true // Cancel adding items to empty output slot
-            it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
-            it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
+            it.slot != 16 && it.isShiftClick -> it.isCancelled = true // Cancel everything but leftClick action
+            it.cursor?.type?.isAir == false && it.cursor?.isDyeable() == false -> it.isCancelled = true // Cancel adding non-dyeable or banned items
         }
     }
 
