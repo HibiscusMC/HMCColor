@@ -12,18 +12,18 @@ var colorConfig = HMCColorConfig()
 @Command("hmccolor")
 class HMCColorCommands : CommandBase() {
 
-    val CONSOLE_ERROR_MSG = Component.text("This command can only be ran by players!").color(NamedTextColor.RED);
+    private val CONSOLE_ERROR_MSG = Component.text("This command can only be ran by players!").color(NamedTextColor.RED)
 
     @Default
     @Permission("hmccolor.command")
     fun CommandSender.defaultCommand() {
-        this.colorCommand()
+        this.colorCommand(this as? Player)
     }
 
     @SubCommand("color")
     @Alias("dye")
-    fun CommandSender.colorCommand() {
-        (this as? Player)?.let { createGui().open(it) }
+    fun CommandSender.colorCommand(@Optional player: Player?) {
+        (player ?: this as? Player)?.let { createGui().open(it) }
             ?: Adventure.AUDIENCE.console().sendMessage(CONSOLE_ERROR_MSG)
     }
 
