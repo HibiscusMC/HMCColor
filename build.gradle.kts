@@ -21,8 +21,8 @@ repositories {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:-SNAPSHOT")
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.2.5")
+    compileOnly("com.github.oraxen:oraxen:1.155.3")
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1-r4")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:idofront:0.12.111")
@@ -46,7 +46,11 @@ java {
 val copyJar = project.findProperty("copyJar")
 val pluginPath = project.findProperty("hibiscusmc_plugin_path")
 tasks {
+
     shadowJar {
+        filesMatching(arrayOf("plugin.yml").asIterable()) {
+            expand(mapOf("version" to pluginVersion))
+        }
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
         relocate("me.mattstudios.mf", "com.hibiscusmc.hmccolor.mf")
         relocate("net.kyori", "com.hibiscusmc.hmccolor.kyori")

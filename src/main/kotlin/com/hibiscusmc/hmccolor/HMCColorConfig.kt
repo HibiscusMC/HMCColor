@@ -12,47 +12,53 @@ import org.bukkit.inventory.meta.PotionMeta
 data class Effects(val name: String, val color: String, val permission: String? = null)
 data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>)
 data class BaseColor(val name: String, val color: String)
+data class BaseColorGrid(val first: IntRange, val second: IntRange, val third: IntRange)
 data class SubColor(val name: String, val color: String)
 class HMCColorConfig {
     private var config = hmcColor.config
-    val effectsEnabled = config.getBoolean("enable_effects_menu", false)
+    val effectsEnabled = config.getBoolean("enableEffectsMenu", false)
     val title = config.getString("title", "HMCColor")!!
     private val buttons = config.getConfigurationSection("buttons")
-    val oraxenItem = buttons?.getString("oraxen_item", "")
-    val crucibleItem = buttons?.getString("crucible_item", "")
-    val itemsAdderItem = buttons?.getString("items_adder_item", "")
-    val lootyItem = buttons?.getString("looty_item", "")
-    val defaultItem = buttons?.getString("default_type", "LEATHER_HORSE_ARMOR")
-    val customModelData = buttons?.getInt("custom_model_data", 0)
+    val oraxenItem = buttons?.getString("oraxenItem", "")
+    val crucibleItem = buttons?.getString("crucibleItem", "")
+    val itemsAdderItem = buttons?.getString("itemsadderItem", "")
+    val lootyItem = buttons?.getString("lootyItem", "")
+    val defaultItem = buttons?.getString("defaultType", "LEATHER_HORSE_ARMOR")
+    val customModelData = buttons?.getInt("customModelData", 0)
+    val inputSlot: Int = buttons?.getInt("inputSlot", 10) ?: 10
+    val outputSlot: Int = buttons?.getInt("outputSlot", 16) ?: 16
+    val baseColorGrid: BaseColorGrid = buttons?.getConfigurationSection("baseColorGrid")?.getBaseColorGrid() ?: BaseColorGrid(12..14, 21..23, 30..32)
+    val subColorRow: IntRange = buttons?.getString("subColorRow")?.toIntRange() ?: 46..52
+    val effectButtonSlot: Int = buttons?.getInt("effectButton", 41) ?: 41
     private val blacklist = config.getConfigurationSection("blacklist")
-    val blacklistedOraxen: List<String> = blacklist?.getStringList("oraxen_items") ?: emptyList()
-    val blacklistedCrucible: List<String> = blacklist?.getStringList("crucible_items") ?: emptyList()
-    val blacklistedItemsAdder: List<String> = blacklist?.getStringList("itemsadder_items") ?: emptyList()
-    val blacklistedLooty: List<String> = blacklist?.getStringList("looty_items") ?: emptyList()
+    val blacklistedOraxen: List<String> = blacklist?.getStringList("oraxenItems") ?: emptyList()
+    val blacklistedCrucible: List<String> = blacklist?.getStringList("crucibleItems") ?: emptyList()
+    val blacklistedItemsAdder: List<String> = blacklist?.getStringList("itemsadderItems") ?: emptyList()
+    val blacklistedLooty: List<String> = blacklist?.getStringList("lootyItems") ?: emptyList()
     val blacklistedTypes: List<String> = blacklist?.getStringList("types") ?: emptyList()
     val colors = config.getConfigurationSection("colors")?.getColors() ?: emptySet()
-    val effectItem = config.getConfigurationSection("effect_item")?.getEffectItem()
+    val effectItem = config.getConfigurationSection("effectItem")?.getEffectItem()
     val effects = if (effectsEnabled) config.getConfigurationSection("effects")?.getEffectsColors() ?: emptySet() else emptySet()
 
     fun reload() {
         hmcColor.reloadConfig()
-        colorConfig.config = hmcColor.config
+        colorConfig = HMCColorConfig()
     }
 
     private fun ConfigurationSection.getEffectItem(): ItemStack {
-        this.getString("oraxen_item")?.let {
+        this.getString("oraxenItem")?.let {
             if (isOraxenLoaded && it.isOraxenItem())
                 return it.getOraxenItem()!!
         }
-        this.getString("looty_item")?.let {
+        this.getString("lootyItem")?.let {
             if (isLootyLoaded && it.isLootyItem())
                 return it.getLootyItem()!!
         }
-        this.getString("itemsadder_item")?.let {
+        this.getString("itemsadderItem")?.let {
             if (isIALoaded && it.isItemsAdderItem())
                 return it.getItemsAdderStack()!!
         }
-        this.getString("crucible_item")?.let {
+        this.getString("crucibleItem")?.let {
             if (isCrucibleLoaded && it.isCrucibleItem())
                 return it.getCrucibleItem()!!
         }
@@ -64,7 +70,7 @@ class HMCColorConfig {
             else Material.valueOf(type)
         val name = this.getString("name", "")
         val color = this.getString("color", "#FFFFFF")?.toColor()
-        val cmd = this.getInt("custom_model_data", customModelData ?: 0)
+        val cmd = this.getInt("customModelData", customModelData ?: 0)
 
         itemStack.type = material
         itemStack.itemMeta = itemStack.itemMeta?.apply {
@@ -108,6 +114,16 @@ class HMCColorConfig {
             )
         }
         return colors
+    }
+
+    private fun ConfigurationSection.getBaseColorGrid(): BaseColorGrid {
+        return BaseColorGrid(this.getString("first", "")!!.toIntRange(), this.getString("second", "")!!.toIntRange(), this.getString("third", "")!!.toIntRange())
+    }
+
+    private fun String.toIntRange(): IntRange {
+        this.split("..", limit = 2).let {
+            return (it.firstOrNull()?.toInt() ?: 0)..(it.lastOrNull()?.toInt() ?: 0)
+        }
     }
 }
 

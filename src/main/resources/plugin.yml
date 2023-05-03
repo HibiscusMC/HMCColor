@@ -1,5 +1,5 @@
 name: HMCColor
-version: '${version}'
+version: "${version}"
 main: com.hibiscusmc.hmccolor.HMCColor
 api-version: 1.16
 softdepend: [ Oraxen, ItemsAdder, MythicCrucible ]
