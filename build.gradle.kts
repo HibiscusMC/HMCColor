@@ -63,6 +63,7 @@ tasks {
 
     if(copyJar != "false" && pluginPath != null) {
         register<Copy>("copyJar") {
+            dependsOn(jar, shadowJar)
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
             doLast {

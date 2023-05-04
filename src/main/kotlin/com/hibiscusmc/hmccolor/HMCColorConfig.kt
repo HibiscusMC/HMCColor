@@ -71,6 +71,7 @@ class HMCColorConfig {
         val name = this.getString("name", "")
         val color = this.getString("color", "#FFFFFF")?.toColor()
         val cmd = this.getInt("customModelData", customModelData ?: 0)
+        val lore = this.getStringList("lore")
 
         itemStack.type = material
         itemStack.itemMeta = itemStack.itemMeta?.apply {
@@ -80,6 +81,7 @@ class HMCColorConfig {
                     ?: (this as? PotionMeta)?.setColor(color)
                     ?: (this as? MapMeta)?.setColor(color)
             }
+            this.lore = lore
             setCustomModelData(cmd)
         }
 
