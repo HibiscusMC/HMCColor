@@ -5,8 +5,8 @@ buttons:
   #itemsadderItem: hmccosmetics:paintbrush
   defaultType: LEATHER_HORSE_ARMOR #Can also be POTION to avoid conflicts with ModelEngine
   customModelData: 1 #Only important if using defaultType
-  inputSlot: 10
-  outputSlot: 16
+  inputSlot: 19
+  outputSlot: 25
   baseColorGrid:
     first: 12..14
     second: 21..23
