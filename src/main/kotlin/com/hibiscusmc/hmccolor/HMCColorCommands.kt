@@ -1,47 +1,43 @@
 package com.hibiscusmc.hmccolor
 
-import dev.triumphteam.gui.guis.Gui
-import me.mattstudios.mf.annotations.*
-import me.mattstudios.mf.base.CommandBase
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
+import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
+import com.mineinabyss.idofront.commands.extensions.actions.playerAction
+import com.mineinabyss.idofront.messaging.success
+import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
+import org.bukkit.command.TabCompleter
 
-var colorConfig = HMCColorConfig()
+class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
 
-@Command("hmccolor")
-class HMCColorCommands : CommandBase() {
-
-    private val CONSOLE_ERROR_MSG = Component.text("This command can only be ran by players!").color(NamedTextColor.RED)
-
-    @Default
-    @Permission("hmccolor.command")
-    fun CommandSender.defaultCommand() {
-        this.colorCommand(this as? Player)
-    }
-
-    @SubCommand("color")
-    @Alias("dye")
-    fun CommandSender.colorCommand(@Optional player: Player?) {
-        (player ?: this as? Player)?.let { createGui().open(it) }
-            ?: Adventure.AUDIENCE.console().sendMessage(CONSOLE_ERROR_MSG)
-    }
-
-    @SubCommand("reload")
-    @Permission("hmccolor.reload")
-    fun CommandSender.reloadCommand() {
-        server.onlinePlayers.forEach {
-            if (it.openInventory.topInventory.holder is Gui) {
-                it.closeInventory()
+    override val commands = commands(hmcColor.plugin) {
+        "hmccolor" {
+            "dye" {
+                playerAction {
+                    HMCColorApi.colorMenu().open(player)
+                }
+            }
+            "reload" {
+                action {
+                    hmcColor.plugin.createColorContext()
+                    cachedDyeMap = getDyeColorList()
+                    cachedEffectSet = getEffectList()
+                    sender.success("HMCColor configs have been reloaded!")
+                }
             }
         }
-        cachedDyeMap.clear()
-        cachedEffectSet.clear()
-        colorConfig.reload()
-        cachedDyeMap = getDyeColorList()
-        cachedEffectSet = getEffectList()
-        Adventure.AUDIENCE.sender(this).sendMessage(Component.text("Successfully reloaded the config!").color(NamedTextColor.GREEN))
     }
 
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<out String>
+    ): List<String> {
+        return if (command.name == "hmccolor") {
+            when (args.size) {
+                1 -> listOf("dye", "reload")
+                else -> listOf()
+            }
+        } else listOf()
+    }
 }

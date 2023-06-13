@@ -1,24 +1,24 @@
 package com.hibiscusmc.hmccolor
 
+import com.mineinabyss.idofront.config.config
+import com.mineinabyss.idofront.di.DI
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
-import me.mattstudios.mf.base.CommandManager
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
-val hmcColor by lazy { Bukkit.getPluginManager().getPlugin("HMCColor") as HMCColor }
 val crucible by lazy { Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible }
 var cachedDyeMap = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 var cachedEffectSet = mutableSetOf<GuiItem>()
 class HMCColor : JavaPlugin() {
     override fun onEnable() {
-        saveDefaultConfig()
+        createColorContext()
 
         cachedDyeMap = getDyeColorList()
         cachedEffectSet = getEffectList()
 
-        CommandManager(hmcColor).register(HMCColorCommands())
+        HMCColorCommands()
     }
 
     override fun onDisable() {
@@ -27,5 +27,14 @@ class HMCColor : JavaPlugin() {
                 it.closeInventory()
             }
         }
+    }
+
+    fun createColorContext() {
+        DI.remove<HMCColorContext>()
+        val colorContext = object : HMCColorContext {
+            override val plugin = this@HMCColor
+            override val config: HMCColorConfig by config("config") { fromPluginPath(loadDefault = true) }
+        }
+        DI.add<HMCColorContext>(colorContext)
     }
 }

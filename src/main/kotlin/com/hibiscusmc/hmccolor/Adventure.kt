@@ -6,7 +6,7 @@ import net.kyori.adventure.text.minimessage.tag.standard.StandardTags
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 
 object Adventure {
-    val AUDIENCE = BukkitAudiences.create(hmcColor)
+    val AUDIENCE = BukkitAudiences.create(hmcColor.plugin)
     val SERIALIZER = LegacyComponentSerializer.builder()
         .hexColors()
         .useUnusualXRepeatedCharacterHexFormat()
