@@ -3,7 +3,7 @@ buttons:
   #oraxenItem: paintbrush
   #crucibleItem: something
   #itemsadderItem: hmccosmetics:paintbrush
-  defaultType: LEATHER_HORSE_ARMOR #Can also be POTION to avoid conflicts with ModelEngine
+  defaultType: LEATHER_HORSE_ARMOR #Can also be POTION, FILLED_MAP & FIREWORK_STAR to avoid conflicts with ModelEngine
   customModelData: 1 #Only important if using defaultType
   inputSlot: 19
   outputSlot: 25
