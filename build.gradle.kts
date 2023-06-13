@@ -13,8 +13,7 @@ version = pluginVersion
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.mineinabyss.com/releases")
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://jitpack.io")
@@ -24,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT")
     compileOnly("com.github.oraxen:oraxen:1.157.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1-r4")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")

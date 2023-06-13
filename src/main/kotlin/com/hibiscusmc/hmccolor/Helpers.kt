@@ -1,10 +1,9 @@
 package com.hibiscusmc.hmccolor
 
-import com.hibiscusmc.hmccolor.Adventure.toLegacy
 import com.mineinabyss.geary.papermc.GearyPlugin
+import com.mineinabyss.geary.papermc.datastore.decodePrefabs
 import com.mineinabyss.geary.papermc.tracking.items.itemTracking
 import com.mineinabyss.geary.prefabs.PrefabKey
-import com.mineinabyss.geary.prefabs.helpers.prefabs
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
 import dev.lone.itemsadder.api.CustomStack
@@ -40,8 +39,8 @@ fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
 fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
 fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
 
-fun ItemStack.isGearyItem() = itemTracking.itemProvider.deserializeItemStackToEntity(this.itemMeta?.persistentDataContainer)?.prefabs?.first()?.get<PrefabKey>() != null
-fun ItemStack.getGearyID() = itemTracking.itemProvider.deserializeItemStackToEntity(this.itemMeta?.persistentDataContainer)?.prefabs?.first()?.get<PrefabKey>()?.full
+fun ItemStack.isGearyItem() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { itemTracking.createItem(it) != null } ?: false
+fun ItemStack.getGearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
 fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) != null } ?: false
 fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) }
 
@@ -166,7 +165,7 @@ fun createGui(): Gui {
                                             click.cursor?.type == Material.AIR && click.currentItem != null -> {
                                                 click.isCancelled = true
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
-                                                else click.whoClicked.inventory.addItem(click.currentItem)
+                                                else click.currentItem?.let { current -> click.whoClicked.inventory.addItem(current) }
                                                 gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack(Material.AIR))
                                                 gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
                                                 gui.update()
@@ -245,7 +244,7 @@ fun getEffectList(): MutableSet<GuiItem> {
         val effectItem = getDefaultItem()
         val color = effect.color.toColor()
         effectItem.editItemMeta {
-            setDisplayName(effect.name.toLegacy())
+            displayName(effect.name.miniMsg())
             when (this) {
                 is LeatherArmorMeta -> this.setColor(color)
                 is PotionMeta -> this.color = color
@@ -264,7 +263,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
         val baseItem = getDefaultItem()
 
         baseItem.editItemMeta {
-            setDisplayName(baseColor.name.toLegacy())
+            displayName(baseColor.name.miniMsg())
             val color = baseColor.color.toColor()
             when (this) {
                 is LeatherArmorMeta -> this.setColor(color)
@@ -279,7 +278,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
             val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: getDefaultItem()
 
             subItem.editItemMeta {
-                setDisplayName(subColor.name.toLegacy())
+                displayName(subColor.name.miniMsg())
                 val color = subColor.color.toColor()
                 when (this) {
                     is LeatherArmorMeta -> this.setColor(color)
