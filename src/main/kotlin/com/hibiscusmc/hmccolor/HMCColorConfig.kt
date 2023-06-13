@@ -6,6 +6,8 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
+import org.bukkit.inventory.meta.FireworkMeta
+import org.bukkit.inventory.meta.FireworkEffectMeta
 import org.bukkit.inventory.meta.PotionMeta
 
 // Just to make the code abit prettier :)
@@ -79,6 +81,8 @@ class HMCColorConfig {
             color?.let {
                 (this as? LeatherArmorMeta)?.setColor(color)
                     ?: (this as? PotionMeta)?.setColor(color)
+                    ?: (this as? FireworkMeta)?.setColor(color)
+                    ?: (this as? FireworkEffectMeta)?.setColor(color)
                     ?: (this as? MapMeta)?.setColor(color)
             }
             this.lore = lore
