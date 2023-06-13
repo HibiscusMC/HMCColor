@@ -20,6 +20,8 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.inventory.meta.PotionMeta
+import org.bukkit.inventory.meta.FireworkMeta
+import org.bukkit.inventory.meta.FireworkEffectMeta
 import java.util.logging.Level
 import kotlin.math.max
 import kotlin.math.min
@@ -159,6 +161,8 @@ fun createGui(): Gui {
                                             when (meta) {
                                                 is LeatherArmorMeta -> meta.color
                                                 is PotionMeta -> meta.color
+                                                is FireworkMeta -> meta.color
+                                                is FireworkEffectMeta -> meta.color
                                                 is MapMeta -> meta.color
                                                 else -> null
                                             }
@@ -172,6 +176,8 @@ fun createGui(): Gui {
 
                                         (this as? LeatherArmorMeta)?.setColor(appliedColor)
                                             ?: (this as? PotionMeta)?.setColor(appliedColor)
+                                            ?: (this as? FireworkMeta)?.setColor(appliedColor)
+                                            ?: (this as? FireworkEffectMeta)?.setColor(appliedColor)
                                             ?: (this as? MapMeta)?.setColor(appliedColor) ?: return@apply
                                     }
 
@@ -311,6 +317,8 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
                 val color = subColor.color.toColor()
                 (this as? LeatherArmorMeta)?.setColor(color)
                     ?: (this as? PotionMeta)?.setColor(color)
+                    ?: (this as? FireworkMeta)?.setColor(color)
+                    ?: (this as? FireworkEffectMeta)?.setColor(color)
                     ?: (this as? MapMeta)?.setColor(color) ?: return@baseColor
             }
 
