@@ -6,6 +6,7 @@ import com.mineinabyss.geary.papermc.tracking.items.itemTracking
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
+import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
@@ -13,7 +14,6 @@ import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
-import net.kyori.adventure.text.Component
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
@@ -43,9 +43,6 @@ fun ItemStack.isGearyItem() = this.itemMeta?.persistentDataContainer?.decodePref
 fun ItemStack.getGearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
 fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) != null } ?: false
 fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) }
-
-fun String.miniMsg() = Adventure.MINI_MESSAGE.deserialize(this)
-fun Component.serialize() = Adventure.MINI_MESSAGE.serialize(this)
 
 val isIALoaded = Plugins.isEnabled("ItemsAdder")
 val isOraxenLoaded = Plugins.isEnabled<OraxenPlugin>()
@@ -85,7 +82,7 @@ fun createGui(): Gui {
     }
 
     // Effects toggle
-    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(hmcColor.config.effectItem.toItemStackOrNull() ?: getDefaultItem()) else null
+    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem) else null
     effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
 
     gui.guiItems.forEach { (_, clickedItem) ->
@@ -241,17 +238,15 @@ internal fun String.toColor(): Color {
 
 fun getEffectList(): MutableSet<GuiItem> {
     return hmcColor.config.effects.values.map effectColor@{ effect ->
-        val effectItem = getDefaultItem()
         val color = effect.color.toColor()
-        effectItem.editItemMeta {
+        GuiItem(defaultItem.editItemMeta {
             displayName(effect.name.miniMsg())
             when (this) {
                 is LeatherArmorMeta -> this.setColor(color)
                 is PotionMeta -> this.color = color
                 is MapMeta -> this.color = color
             }
-        }
-        GuiItem(effectItem)
+        })
     }.toMutableSet()
 }
 
@@ -260,7 +255,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
 
     hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors) ->
         val list = mutableListOf<GuiItem>()
-        val baseItem = getDefaultItem()
+        val baseItem = defaultItem
 
         baseItem.editItemMeta {
             displayName(baseColor.name.miniMsg())
@@ -275,7 +270,7 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
 
         // Make the ItemStacks for all subColors
         subColors.forEach subColor@{ subColor ->
-            val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: getDefaultItem()
+            val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
 
             subItem.editItemMeta {
                 displayName(subColor.name.miniMsg())
@@ -299,4 +294,4 @@ fun getDyeColorList(): MutableMap<GuiItem, MutableList<GuiItem>> {
     return map
 }
 
-private fun getDefaultItem() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
+private val defaultItem get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
