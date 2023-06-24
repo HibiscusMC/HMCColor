@@ -1,7 +1,8 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id ("org.jetbrains.kotlin.jvm") version "1.7.20"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.mia.kotlin.jvm)
 }
 
 val pluginVersion: String by project
@@ -11,32 +12,27 @@ version = pluginVersion
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.mineinabyss.com/releases")
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://jitpack.io")
     maven("https://repo.mineinabyss.com/releases")
+    maven("https://repo.mineinabyss.com/snapshots")
+    mavenLocal()
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:1.155.3")
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1-r4")
+    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT")
+    compileOnly("com.github.oraxen:oraxen:1.157.0")
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:idofront:0.12.111")
-    compileOnly("com.mineinabyss:geary-papermc-core:0.19.113")
-    compileOnly("com.mineinabyss:looty:0.8.67")
+    compileOnly("com.mineinabyss:geary-papermc:0.24-SNAPSHOT")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("net.kyori:adventure-api:4.13.0")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0")
-    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
-    implementation("dev.triumphteam:triumph-gui:3.1.4")
-    implementation("me.mattstudios.utils:matt-framework:1.4.6")
-    implementation("com.mineinabyss:idofront-commands:0.16.10")
-    implementation("com.mineinabyss:idofront-config:0.16.10")
+    implementation("dev.triumphteam:triumph-gui:3.1.5")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.kaml)
+    implementation(libs.bundles.idofront.core)
 }
 
 java {
@@ -51,18 +47,18 @@ tasks {
         filesMatching(arrayOf("plugin.yml").asIterable()) {
             expand(mapOf("version" to pluginVersion))
         }
-        relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.gui")
-        relocate("me.mattstudios.mf", "com.hibiscusmc.hmccolor.mf")
-        relocate("net.kyori", "com.hibiscusmc.hmccolor.kyori")
-        relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.configurate")
-        relocate("org.bstats", "com.hibiscusmc.hmccolor.bstats")
-        relocate("kotlin", "com.hibiscusmc.hmccolor.kotlin")
-        relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.idofront")
+        relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.shaded.gui")
+        relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.shaded.configurate")
+        relocate("org.bstats", "com.hibiscusmc.hmccolor.shaded.bstats")
+        relocate("kotlin", "com.hibiscusmc.hmccolor.shaded.kotlin")
+        relocate("org.jetbrains", "com.hibiscusmc.hmccolor.shaded.jetbrains")
+        relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
         archiveFileName.set("HMCColor-${pluginVersion}.jar")
     }
 
     if(copyJar != "false" && pluginPath != null) {
         register<Copy>("copyJar") {
+            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(jar, shadowJar)
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
