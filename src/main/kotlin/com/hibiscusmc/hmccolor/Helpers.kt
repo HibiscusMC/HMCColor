@@ -2,7 +2,7 @@ package com.hibiscusmc.hmccolor
 
 import com.mineinabyss.geary.papermc.GearyPlugin
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
-import com.mineinabyss.geary.papermc.tracking.items.itemTracking
+import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
@@ -39,10 +39,10 @@ fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
 fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
 fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
 
-fun ItemStack.isGearyItem() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { itemTracking.createItem(it) != null } ?: false
+fun ItemStack.isGearyItem() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
 fun ItemStack.getGearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
-fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) != null } ?: false
-fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { itemTracking.createItem(it) }
+fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
+fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) }
 
 val isIALoaded = Plugins.isEnabled("ItemsAdder")
 val isOraxenLoaded = Plugins.isEnabled<OraxenPlugin>()

@@ -22,12 +22,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:1.157.0")
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    compileOnly("com.github.oraxen:oraxen:1.157.2")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:geary-papermc:0.24-SNAPSHOT")
+    compileOnly("com.mineinabyss:geary-papermc:0.24.1")
 
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation(libs.kotlinx.serialization.json)
