@@ -1,8 +1,10 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    java
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id ("org.jetbrains.kotlin.jvm") version "1.9.0"
     alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.mia.kotlin.jvm)
+    alias(libs.plugins.mia.copyjar)
 }
 
 val pluginVersion: String by project
@@ -23,24 +25,36 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:1.157.2")
+    compileOnly("com.github.oraxen:oraxen:1.159.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:geary-papermc:0.24.1")
 
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.kaml)
-    implementation(libs.bundles.idofront.core)
+
+    implementation(libs.idofront.di)
+    implementation(libs.idofront.commands)
+    implementation(libs.idofront.config)
+    implementation(libs.idofront.text.components)
+    implementation(libs.idofront.logging)
+    implementation(libs.idofront.serializers)
+    implementation(libs.idofront.util)
+
 }
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+kotlin {
+    jvmToolchain(17)
 }
 
-val copyJar = project.findProperty("copyJar")
-val pluginPath = project.findProperty("hibiscusmc_plugin_path")
+copyJar {
+    destPath.set(project.findProperty("hibiscusmc_plugin_path") as String)
+    this.jarName.set("HMCColor-${pluginVersion}.jar")
+}
+
 tasks {
 
     shadowJar {
@@ -53,26 +67,8 @@ tasks {
         relocate("kotlin", "com.hibiscusmc.hmccolor.shaded.kotlin")
         relocate("org.jetbrains", "com.hibiscusmc.hmccolor.shaded.jetbrains")
         relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
-        archiveFileName.set("HMCColor-${pluginVersion}.jar")
     }
-
-    if(copyJar != "false" && pluginPath != null) {
-        register<Copy>("copyJar") {
-            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
-            dependsOn(jar, shadowJar)
-            from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
-            into(pluginPath)
-            doLast {
-                println("Copied to plugin directory $pluginPath")
-            }
-        }
-
-        build {
-            dependsOn("copyJar")
-        }
-    } else {
-        build {
-            dependsOn("shadowJar")
-        }
-    }
+    build.get().dependsOn(shadowJar)
+    copyJar.get().dependsOn(shadowJar)
+    build.get().dependsOn(copyJar)
 }
