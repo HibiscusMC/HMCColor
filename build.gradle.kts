@@ -47,8 +47,9 @@ kotlin {
     jvmToolchain(17)
 }
 
-copyJar {
-    destPath.set(project.findProperty("hibiscusmc_plugin_path") as String)
+val buildPath = project.findProperty("hibiscusmc_plugin_path") as? String?
+if (buildPath != null) copyJar {
+    destPath.set(buildPath)
     this.jarName.set("HMCColor-${pluginVersion}.jar")
     this.excludePlatformDependencies.set(false)
 }
@@ -67,6 +68,8 @@ tasks {
         relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
     }
     build.get().dependsOn(shadowJar)
-    task("copyJar").dependsOn(shadowJar)
-    build.get().dependsOn("copyJar")
+    if (buildPath != null) named("copyJar").orNull?.let {
+        it.dependsOn(shadowJar)
+        build.get().dependsOn(it)
+    }
 }
