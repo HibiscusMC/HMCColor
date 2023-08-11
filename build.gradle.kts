@@ -67,8 +67,6 @@ tasks {
         relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
     }
     build.get().dependsOn(shadowJar)
-    if (project.findProperty("copyJar") as? Boolean? == true) {
-        copyJar.get().dependsOn(shadowJar)
-        build.get().dependsOn(copyJar)
-    }
+    task("copyJar").dependsOn(shadowJar)
+    build.get().dependsOn("copyJar")
 }
