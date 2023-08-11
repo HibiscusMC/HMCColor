@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id ("org.jetbrains.kotlin.jvm") version "1.9.0"
@@ -31,8 +29,8 @@ dependencies {
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:geary-papermc:0.24.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("dev.triumphteam:triumph-gui:3.1.5")
+    implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.kaml)
 
@@ -43,7 +41,6 @@ dependencies {
     implementation(libs.idofront.logging)
     implementation(libs.idofront.serializers)
     implementation(libs.idofront.util)
-
 }
 
 kotlin {
@@ -53,6 +50,7 @@ kotlin {
 copyJar {
     destPath.set(project.findProperty("hibiscusmc_plugin_path") as String)
     this.jarName.set("HMCColor-${pluginVersion}.jar")
+    this.excludePlatformDependencies.set(false)
 }
 
 tasks {
