@@ -14,7 +14,7 @@ buttons:
     second: 21..23
     third: 30..32
   subColorRow: 46..52
-  effectButton: 41
+  effectButton: 40
 
 blacklistedItems:
   oraxenItems:
