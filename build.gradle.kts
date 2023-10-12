@@ -1,3 +1,7 @@
+import io.papermc.paperweight.util.path
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
+import kotlin.io.path.absolutePathString
+
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id ("org.jetbrains.kotlin.jvm") version "1.9.0"
@@ -18,18 +22,17 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
-    mavenLocal()
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:1.159.0")
+    compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
+    compileOnly("com.github.oraxen:oraxen:1.162.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:geary-papermc:0.24.1")
+    compileOnly("com.mineinabyss:geary-papermc:0.25.1")
 
-    implementation("dev.triumphteam:triumph-gui:3.1.5")
+    implementation("dev.triumphteam:triumph-gui:3.1.5") { exclude("net.kyori") }
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.kaml)
@@ -48,8 +51,8 @@ kotlin {
 }
 
 val buildPath = project.findProperty("hibiscusmc_plugin_path") as? String?
-if (buildPath != null) copyJar {
-    destPath.set(buildPath)
+copyJar {
+    this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
     this.jarName.set("HMCColor-${pluginVersion}.jar")
     this.excludePlatformDependencies.set(false)
 }
@@ -66,10 +69,5 @@ tasks {
         relocate("kotlin", "com.hibiscusmc.hmccolor.shaded.kotlin")
         relocate("org.jetbrains", "com.hibiscusmc.hmccolor.shaded.jetbrains")
         relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
-    }
-    build.get().dependsOn(shadowJar)
-    if (buildPath != null) named("copyJar").orNull?.let {
-        it.dependsOn(shadowJar)
-        build.get().dependsOn(it)
     }
 }
