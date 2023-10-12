@@ -82,7 +82,7 @@ fun createGui(): Gui {
     }
 
     // Effects toggle
-    val effectItem = if (cachedEffectSet.isNotEmpty()) GuiItem(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem) else null
+    val effectItem = if (cachedEffectSet.isNotEmpty() && hmcColor.config.enableEffectsMenu) GuiItem(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem) else null
     effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
 
     gui.guiItems.forEach { (_, clickedItem) ->
