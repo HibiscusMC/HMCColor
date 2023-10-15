@@ -24,7 +24,7 @@ data class HMCColorConfig(
         val outputSlot: Int,
         val baseColorGrid: BaseColorGrid = BaseColorGrid(12..14, 21..23, 30..32),
         val subColorRow: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
-        val effectButton: Int = 41
+        val effectButton: Int = 40
     )
 
     @Serializable
