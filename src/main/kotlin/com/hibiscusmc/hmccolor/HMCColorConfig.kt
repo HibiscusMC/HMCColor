@@ -8,6 +8,7 @@ import org.bukkit.Material
 @Serializable
 data class HMCColorConfig(
     val title: String,
+    val rows: Int = 6,
     val buttons: Buttons,
     val blacklistedItems: BlackListedItems,
     val enableEffectsMenu: Boolean,

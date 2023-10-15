@@ -60,7 +60,7 @@ private fun ItemStack.isDyeable(): Boolean {
 // Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
 fun createGui(): Gui {
     var effectToggleState = false
-    val rows = 6
+    val rows = hmcColor.config.rows
     val gui = Gui.gui(GuiType.CHEST).rows(rows).title(hmcColor.config.title.miniMsg()).create()
 
     // baseColor square
