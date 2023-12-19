@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
 import org.bukkit.Color
 import org.bukkit.Material
+import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
@@ -176,7 +177,7 @@ fun createGui(): Gui {
     gui.setPlayerInventoryAction { click ->
         if (click.isShiftClick) {
             val inputStack = gui.getGuiItem(hmcColor.config.buttons.inputSlot)?.itemStack
-            if (inputStack == null || inputStack.type.isAir && click.currentItem?.isDyeable() == true) {
+            if ((inputStack == null || inputStack.type.isAir) && click.currentItem?.isDyeable() == true) {
                 click.isCancelled = true
                 gui.updateItem(hmcColor.config.buttons.inputSlot, GuiItem(click.currentItem!!))
                 gui.update()
