@@ -21,8 +21,6 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
             "reload" {
                 action {
                     hmcColor.plugin.createColorContext()
-                    cachedDyeMap = getDyeColorList()
-                    cachedEffectSet = getEffectList()
                     sender.success("HMCColor configs have been reloaded!")
                 }
             }

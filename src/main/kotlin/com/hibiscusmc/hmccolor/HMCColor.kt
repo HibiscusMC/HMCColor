@@ -6,18 +6,16 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import org.bukkit.Bukkit
+import org.bukkit.Color
 import org.bukkit.plugin.java.JavaPlugin
 
 val crucible by lazy { Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible }
 var cachedDyeMap = mutableMapOf<GuiItem, MutableList<GuiItem>>()
 var cachedEffectSet = mutableSetOf<GuiItem>()
+var cachedColors = mutableMapOf<HMCColorConfig.Colors, Set<Color>>()
 class HMCColor : JavaPlugin() {
     override fun onEnable() {
         createColorContext()
-
-        cachedDyeMap = getDyeColorList()
-        cachedEffectSet = getEffectList()
-
         HMCColorCommands()
     }
 
@@ -36,5 +34,9 @@ class HMCColor : JavaPlugin() {
             override val config: HMCColorConfig by config("config") { fromPluginPath(loadDefault = true) }
         }
         DI.add<HMCColorContext>(colorContext)
+
+        cachedDyeMap = getDyeColorList()
+        cachedEffectSet = getEffectList()
+        cachedColors = hmcColor.config.colors.values.associateWith { setOf(it.baseColor.color.toColor()) + it.subColors.map { s -> s.color.toColor() }.toSet() }.toMutableMap()
     }
 }

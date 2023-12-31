@@ -14,6 +14,7 @@ data class HMCColorConfig(
     val enableEffectsMenu: Boolean,
     val effectItem: SerializableItemStack,
     val effects: Map<String, Effect>,
+    val colorPermission: String = "hmccolor.dye",
     val colors: Map<String, Colors>,
 ) {
 
@@ -37,9 +38,9 @@ data class HMCColorConfig(
     )
 
     @Serializable
-    data class Effect(val name: String, val color: String, val permission: String? = null)
+    data class Effect(val name: String, val color: String, val permission: String = "")
     @Serializable
-    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>)
+    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, val permission: String = "")
     @Serializable
     data class BaseColor(val name: String, val color: String)
     @Serializable

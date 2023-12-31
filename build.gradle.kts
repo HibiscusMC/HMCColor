@@ -52,7 +52,7 @@ kotlin {
 
 val buildPath = project.findProperty("hibiscusmc_plugin_path") as? String?
 copyJar {
-    this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
+    //this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
     this.jarName.set("HMCColor-${pluginVersion}.jar")
     this.excludePlatformDependencies.set(false)
 }

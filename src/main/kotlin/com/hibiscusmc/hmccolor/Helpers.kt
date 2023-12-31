@@ -58,6 +58,7 @@ private fun ItemStack.isDyeable(): Boolean {
     }
 }
 
+
 // Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
 fun createGui(): Gui {
     var effectToggleState = false
@@ -132,10 +133,14 @@ fun createGui(): Gui {
                                             }
                                         } ?: return@subAction
 
+                                        // If player lacks permission, skip applying any color to output item
                                         hmcColor.config.effects.values.find { e -> e.color.toColor() == appliedColor }?.let { effect ->
-                                            effect.permission?.let { perm ->
-                                                if (!click.whoClicked.hasPermission(perm)) return@subAction
-                                            }
+                                            if (!click.whoClicked.hasPermission(effect.permission)) return@editItemMeta
+                                        }
+
+                                        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
+                                            if (!click.whoClicked.hasPermission(colors.permission)) return@editItemMeta
+                                            if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
                                         }
 
                                         when (this) {
