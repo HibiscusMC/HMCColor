@@ -15,7 +15,7 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
             "dye" {
                 val player: Player by playerArg { default = sender as? Player }
                 action {
-                    HMCColorApi.colorMenu().open(player)
+                    player.openGui()
                 }
             }
             "reload" {

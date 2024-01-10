@@ -14,9 +14,10 @@ import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
+import io.th0rgal.oraxen.shaded.`if`.gui.type.util.Gui.getGui
 import org.bukkit.Color
 import org.bukkit.Material
-import org.bukkit.event.inventory.InventoryAction
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.meta.MapMeta
@@ -40,7 +41,9 @@ fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
 fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
 fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
 
-fun ItemStack.isGearyItem() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
+fun ItemStack.isGearyItem() =
+    this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
+
 fun ItemStack.getGearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
 fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
 fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) }
@@ -58,12 +61,13 @@ private fun ItemStack.isDyeable(): Boolean {
     }
 }
 
+private val cachedPlayerGui = mutableMapOf<Player, Gui>()
 
-// Confusing but slot is sometimes 19 sometimes 20 due to inventory starting at index 0 whilst gui at 1
-fun createGui(): Gui {
+fun Player.openGui() {
+    val gui = getGui()
+    val cachedDyeMap = getDyeColorList(this)
+    val cachedEffectSet = getEffectList(this)
     var effectToggleState = false
-    val rows = hmcColor.config.rows
-    val gui = Gui.gui(GuiType.CHEST).rows(rows).title(hmcColor.config.title.miniMsg()).create()
 
     // baseColor square
     hmcColor.config.buttons.baseColorGrid.let {
@@ -79,7 +83,9 @@ fun createGui(): Gui {
     }
 
     // Effects toggle
-    val effectItem = if (cachedEffectSet.isNotEmpty() && hmcColor.config.enableEffectsMenu) GuiItem(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem) else null
+    val effectItem = if (cachedEffectSet.isNotEmpty() && hmcColor.config.enableEffectsMenu) GuiItem(
+        hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem
+    ) else null
     effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
 
     gui.guiItems.forEach { (_, clickedItem) ->
@@ -105,13 +111,18 @@ fun createGui(): Gui {
                     //Reset bottom
                     hmcColor.config.buttons.subColorRow.forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
                     // Find the middle of given IntRange
-                    val middleSubColor = hmcColor.config.buttons.subColorRow.first + hmcColor.config.buttons.subColorRow.count() / 2
+                    val middleSubColor =
+                        hmcColor.config.buttons.subColorRow.first + hmcColor.config.buttons.subColorRow.count() / 2
                     // Subtract 0.1 because we want to round down on .5
                     val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
-                    val range = max(middleSubColor - offset, hmcColor.config.buttons.subColorRow.first)..min(middleSubColor + offset, hmcColor.config.buttons.subColorRow.last)
+                    val range = max(
+                        middleSubColor - offset,
+                        hmcColor.config.buttons.subColorRow.first
+                    )..min(middleSubColor + offset, hmcColor.config.buttons.subColorRow.last)
                     range.forEachIndexed { index, i ->
                         gui.updateItem(
-                            i, runCatching { // if effect is toggled, we fill based on effect list, otherwise it's a dye color
+                            i,
+                            runCatching { // if effect is toggled, we fill based on effect list, otherwise it's a dye color
                                 dyeMap[index]
                             }.getOrNull() ?: GuiItem(Material.AIR)
                         )
@@ -120,7 +131,8 @@ fun createGui(): Gui {
                             when {
                                 it.isShiftClick -> return@subAction
                                 (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
-                                    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return@subAction
+                                    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)
+                                        ?.let { i -> GuiItem(i) } ?: return@subAction
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
 
                                     guiOutput.itemStack.editItemMeta {
@@ -134,9 +146,10 @@ fun createGui(): Gui {
                                         } ?: return@subAction
 
                                         // If player lacks permission, skip applying any color to output item
-                                        hmcColor.config.effects.values.find { e -> e.color.toColor() == appliedColor }?.let { effect ->
-                                            if (!click.whoClicked.hasPermission(effect.permission)) return@editItemMeta
-                                        }
+                                        hmcColor.config.effects.values.find { e -> e.color.toColor() == appliedColor }
+                                            ?.let { effect ->
+                                                if (!click.whoClicked.hasPermission(effect.permission)) return@editItemMeta
+                                            }
 
                                         cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
                                             if (!click.whoClicked.hasPermission(colors.permission)) return@editItemMeta
@@ -159,9 +172,19 @@ fun createGui(): Gui {
                                             click.cursor.type == Material.AIR && click.currentItem != null -> {
                                                 click.isCancelled = true
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
-                                                else click.currentItem?.let { current -> click.whoClicked.inventory.addItem(current) }
-                                                gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack(Material.AIR))
-                                                gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
+                                                else click.currentItem?.let { current ->
+                                                    click.whoClicked.inventory.addItem(
+                                                        current
+                                                    )
+                                                }
+                                                gui.updateItem(
+                                                    hmcColor.config.buttons.inputSlot,
+                                                    ItemStack(Material.AIR)
+                                                )
+                                                gui.updateItem(
+                                                    hmcColor.config.buttons.outputSlot,
+                                                    ItemStack(Material.AIR)
+                                                )
                                                 gui.update()
                                             }
                                         }
@@ -200,10 +223,19 @@ fun createGui(): Gui {
                 gui.update()
             }
 
-            click.slot !in hmcColor.config.buttons.let { c -> setOf(c.inputSlot, c.outputSlot, c.effectButton) } -> click.isCancelled = true // Cancel any non input/output/effectToggle slot
-            click.slot == hmcColor.config.buttons.outputSlot && click.currentItem == null -> click.isCancelled = true // Cancel adding items to empty output slot
-            click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled = true // Cancel everything but leftClick action
-            !click.cursor.type.isAir && !click.cursor.isDyeable() -> click.isCancelled = true // Cancel adding non-dyeable or banned items
+            click.slot !in hmcColor.config.buttons.let { c ->
+                setOf(
+                    c.inputSlot,
+                    c.outputSlot,
+                    c.effectButton
+                )
+            } -> click.isCancelled = true // Cancel any non input/output/effectToggle slot
+            click.slot == hmcColor.config.buttons.outputSlot && click.currentItem == null -> click.isCancelled =
+                true // Cancel adding items to empty output slot
+            click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled =
+                true // Cancel everything but leftClick action
+            !click.cursor.type.isAir && !click.cursor.isDyeable() -> click.isCancelled =
+                true // Cancel adding non-dyeable or banned items
         }
     }
 
@@ -214,8 +246,13 @@ fun createGui(): Gui {
         } else click.player.world.dropItemNaturally(click.player.location, inputItem)
     }
 
-    return gui
+    gui.update()
+    gui.open(this)
 }
+
+fun Player.getGui() =
+    cachedPlayerGui[this] ?: Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg())
+        .create().also { cachedPlayerGui[this] = it }
 
 internal fun String.toColor(): Color {
     return when {
@@ -231,40 +268,31 @@ internal fun String.toColor(): Color {
     }
 }
 
-fun getEffectList() = hmcColor.config.effects.values.map effectColor@{ effect ->
-    val color = effect.color.toColor()
-    GuiItem(defaultItem.editItemMeta {
-        displayName(effect.name.miniMsg())
-        when (this) {
-            is LeatherArmorMeta -> this.setColor(color)
-            is PotionMeta -> this.color = color
-            is MapMeta -> this.color = color
-        }
-    })
-}.toMutableSet()
-
-fun getDyeColorList() = mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
-    hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors) ->
-        val list = mutableListOf<GuiItem>()
-        val baseItem = defaultItem
-
-        baseItem.editItemMeta {
-            displayName(baseColor.name.miniMsg())
-            val color = baseColor.color.toColor()
+val effectList = mutableMapOf<Player, MutableSet<GuiItem>>()
+fun getEffectList(player: Player) = effectList.getOrPut(player) {
+    hmcColor.config.effects.values.map effectColor@{ effect ->
+        val color = effect.color.toColor()
+        GuiItem(defaultItem.editItemMeta {
+            displayName(effect.name.miniMsg())
             when (this) {
                 is LeatherArmorMeta -> this.setColor(color)
                 is PotionMeta -> this.color = color
                 is MapMeta -> this.color = color
             }
-        }
+        })
+    }.toMutableSet()
+}
 
-        // Make the ItemStacks for all subColors
-        subColors.forEach subColor@{ subColor ->
-            val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
+private val dyeColorList = mutableMapOf<Player, MutableMap<GuiItem, MutableList<GuiItem>>>()
+fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
+    mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
+        hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors) ->
+            val list = mutableListOf<GuiItem>()
+            val baseItem = defaultItem
 
-            subItem.editItemMeta {
-                displayName(subColor.name.miniMsg())
-                val color = subColor.color.toColor()
+            baseItem.editItemMeta {
+                displayName(baseColor.name.miniMsg())
+                val color = baseColor.color.toColor()
                 when (this) {
                     is LeatherArmorMeta -> this.setColor(color)
                     is PotionMeta -> this.color = color
@@ -272,13 +300,30 @@ fun getDyeColorList() = mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
                 }
             }
 
-            if (list.size >= 7) return@subColor // Only allow for 7 subColor options
-            list += GuiItem(subItem)
-        }
-        if (this.size >= 9) return@baseColor // only show the first 9 baseColors
+            // Make the ItemStacks for all subColors
+            subColors.forEach subColor@{ subColor ->
+                val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
 
-        this[GuiItem(baseItem)] = list
+                subItem.editItemMeta {
+                    displayName(subColor.name.miniMsg())
+                    val color = subColor.color.toColor()
+                    when (this) {
+                        is LeatherArmorMeta -> this.setColor(color)
+                        is PotionMeta -> this.color = color
+                        is MapMeta -> this.color = color
+                    }
+                }
+
+                if (list.size >= 7) return@subColor // Only allow for 7 subColor options
+                list += GuiItem(subItem)
+            }
+            if (this.size >= 9) return@baseColor // only show the first 9 baseColors
+
+            this[GuiItem(baseItem)] = list
+        }
     }
 }
 
-private val defaultItem get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
+
+private val defaultItem
+    get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)

@@ -32,7 +32,7 @@ dependencies {
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:geary-papermc:0.25.1")
 
-    implementation("dev.triumphteam:triumph-gui:3.1.5") { exclude("net.kyori") }
+    implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.kaml)
@@ -52,7 +52,7 @@ kotlin {
 
 val buildPath = project.findProperty("hibiscusmc_plugin_path") as? String?
 copyJar {
-    //this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
+    this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
     this.jarName.set("HMCColor-${pluginVersion}.jar")
     this.excludePlatformDependencies.set(false)
 }
