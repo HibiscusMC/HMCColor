@@ -34,6 +34,6 @@ class HMCColor : JavaPlugin() {
         }
         DI.add<HMCColorContext>(colorContext)
 
-        cachedColors = hmcColor.config.colors.values.associateWith { setOf(it.baseColor.color.toColor()) + it.subColors.map { s -> s.color.toColor() }.toSet() }.toMutableMap()
+        cachedColors = hmcColor.config.colors.values.associateWith { setOf(it.baseColor.color) + it.subColors.map(HMCColorConfig.SubColor::color).toSet() }.toMutableMap()
     }
 }

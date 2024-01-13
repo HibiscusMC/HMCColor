@@ -2,7 +2,9 @@ package com.hibiscusmc.hmccolor
 
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.SerializableItemStack
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.bukkit.Material
 
 @Serializable
@@ -38,13 +40,19 @@ data class HMCColorConfig(
     )
 
     @Serializable
-    data class Effect(val name: String, val color: String, val permission: String = "")
+    data class Effect(val name: String, @SerialName("color") private val _color: String, val permission: String = "") {
+        @Transient val color = _color.toColor()
+    }
     @Serializable
     data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, val permission: String = "")
     @Serializable
-    data class BaseColor(val name: String, val color: String)
+    data class BaseColor(val name: String, @SerialName("color") private val _color: String) {
+        @Transient val color = _color.toColor()
+    }
     @Serializable
-    data class SubColor(val name: String, val color: String)
+    data class SubColor(val name: String, @SerialName("color") private val _color: String) {
+        @Transient val color = _color.toColor()
+    }
     @Serializable
     data class BaseColorGrid(
         val first: @Serializable(with = IntRangeSerializer::class) IntRange,

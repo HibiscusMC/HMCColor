@@ -147,13 +147,12 @@ fun Player.openGui() {
                                         } ?: return@subAction
 
                                         // If player lacks permission, skip applying any color to output item
-                                        hmcColor.config.effects.values.find { e -> e.color.toColor() == appliedColor }
-                                            ?.let { effect ->
-                                                if (!click.whoClicked.hasPermission(effect.permission)) return@editItemMeta
-                                            }
+                                        hmcColor.config.effects.values.find { e -> e.color == appliedColor }?.permission?.let { permission ->
+                                            if (!click.whoClicked.hasPermission(permission)) return@editItemMeta
+                                        }
 
-                                        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
-                                            if (!click.whoClicked.hasPermission(colors.permission)) return@editItemMeta
+                                        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.permission?.let { permission ->
+                                            if (!click.whoClicked.hasPermission(permission)) return@editItemMeta
                                             if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
                                         }
 
@@ -270,13 +269,12 @@ internal fun String.toColor(): Color {
 val effectList = mutableMapOf<Player, MutableSet<GuiItem>>()
 fun getEffectList(player: Player) = effectList.getOrPut(player) {
     hmcColor.config.effects.values.map effectColor@{ effect ->
-        val color = effect.color.toColor()
         GuiItem(defaultItem.editItemMeta {
             displayName(effect.name.miniMsg())
             when (this) {
-                is LeatherArmorMeta -> this.setColor(color)
-                is PotionMeta -> this.color = color
-                is MapMeta -> this.color = color
+                is LeatherArmorMeta -> this.setColor(effect.color)
+                is PotionMeta -> this.color = effect.color
+                is MapMeta -> this.color = effect.color
             }
         })
     }.toMutableSet()
@@ -293,11 +291,10 @@ fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
                 if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                val color = baseColor.color.toColor()
                 when (this) {
-                    is LeatherArmorMeta -> this.setColor(color)
-                    is PotionMeta -> this.color = color
-                    is MapMeta -> this.color = color
+                    is LeatherArmorMeta -> this.setColor(baseColor.color)
+                    is PotionMeta -> this.color = baseColor.color
+                    is MapMeta -> this.color = baseColor.color
                 }
             }
 
@@ -308,11 +305,10 @@ fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
                 subItem.editItemMeta {
                     displayName(subColor.name.miniMsg())
                     if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                    val color = subColor.color.toColor()
                     when (this) {
-                        is LeatherArmorMeta -> this.setColor(color)
-                        is PotionMeta -> this.color = color
-                        is MapMeta -> this.color = color
+                        is LeatherArmorMeta -> this.setColor(subColor.color)
+                        is PotionMeta -> this.color = subColor.color
+                        is MapMeta -> this.color = subColor.color
                     }
                 }
 
