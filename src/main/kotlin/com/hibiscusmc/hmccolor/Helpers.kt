@@ -64,7 +64,7 @@ private fun ItemStack.isDyeable(): Boolean {
 
 private val cachedPlayerGui = mutableMapOf<Player, Gui>()
 
-fun Player.openGui() {
+fun Player.getOrCreateColorMenu(): Gui {
     val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
     val cachedDyeMap = getDyeColorList(this)
     val cachedEffectSet = getEffectList(this)
@@ -246,11 +246,8 @@ fun Player.openGui() {
         } else click.player.world.dropItemNaturally(click.player.location, inputItem)
     }
 
-    gui.update()
-    gui.open(this)
+    return gui.also { cachedPlayerGui[this] = it }
 }
-
-fun Player.getGui() = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
 
 internal fun String.toColor(): Color {
     return when {

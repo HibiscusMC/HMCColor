@@ -15,7 +15,7 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
         "hmccolor" {
             "dye" {
                 playerAction {
-                    player.openGui()
+                    player.getOrCreateColorMenu().open(player)
                 }
             }
             "reload" {
