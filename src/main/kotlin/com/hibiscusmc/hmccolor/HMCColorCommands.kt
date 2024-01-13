@@ -1,13 +1,11 @@
 package com.hibiscusmc.hmccolor
 
-import com.mineinabyss.idofront.commands.arguments.playerArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.success
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
-import org.bukkit.entity.Player
 
 class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
 
@@ -15,7 +13,7 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
         "hmccolor" {
             "dye" {
                 playerAction {
-                    player.getOrCreateColorMenu().open(player)
+                    player.createColorMenu().open(player)
                 }
             }
             "reload" {

@@ -62,9 +62,7 @@ private fun ItemStack.isDyeable(): Boolean {
     }
 }
 
-private val cachedPlayerGui = mutableMapOf<Player, Gui>()
-
-fun Player.getOrCreateColorMenu(): Gui {
+fun Player.createColorMenu(): Gui {
     val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
     val cachedDyeMap = getDyeColorList(this)
     val cachedEffectSet = getEffectList(this)
@@ -246,7 +244,7 @@ fun Player.getOrCreateColorMenu(): Gui {
         } else click.player.world.dropItemNaturally(click.player.location, inputItem)
     }
 
-    return gui.also { cachedPlayerGui[this] = it }
+    return gui
 }
 
 internal fun String.toColor(): Color {
@@ -264,8 +262,8 @@ internal fun String.toColor(): Color {
 }
 
 val effectList = mutableMapOf<Player, MutableSet<GuiItem>>()
-fun getEffectList(player: Player) = effectList.getOrPut(player) {
-    hmcColor.config.effects.values.map effectColor@{ effect ->
+fun getEffectList(player: Player) : MutableSet<GuiItem> {
+    return hmcColor.config.effects.values.map effectColor@{ effect ->
         GuiItem(defaultItem.editItemMeta {
             displayName(effect.name.miniMsg())
             when (this) {
@@ -278,9 +276,9 @@ fun getEffectList(player: Player) = effectList.getOrPut(player) {
 }
 
 private val dyeColorList = mutableMapOf<Player, MutableMap<GuiItem, MutableList<GuiItem>>>()
-fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
+fun getDyeColorList(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
     val noPermissionComponent = Component.text("You do not have access to this color!", NamedTextColor.RED)
-    mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
+    return mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
         hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors, permission) ->
             val list = mutableListOf<GuiItem>()
             val baseItem = defaultItem
