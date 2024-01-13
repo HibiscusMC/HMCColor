@@ -35,7 +35,7 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
     ): List<String> {
         return if (command.name == "hmccolor") when (args.size) {
             1 -> listOf("dye", "reload").filter { it.startsWith(args[0]) }
-            2 -> (if (args[0] == "dye") hmcColor.plugin.server.onlinePlayers.map { it.name } else listOf()).filter { it.startsWith(args[1]) }
+            2 -> (if (args[0] == "dye") if (sender.hasPermission(command.permission ?: "")) hmcColor.plugin.server.onlinePlayers.map { it.name } else listOf(sender.name) else listOf()).filter { it.startsWith(args[1]) }
             else -> listOf()
         } else listOf()
     }
