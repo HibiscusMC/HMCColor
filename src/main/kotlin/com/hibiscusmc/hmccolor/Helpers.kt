@@ -14,7 +14,6 @@ import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
-import io.th0rgal.oraxen.shaded.`if`.gui.type.util.Gui.getGui
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -64,7 +63,7 @@ private fun ItemStack.isDyeable(): Boolean {
 private val cachedPlayerGui = mutableMapOf<Player, Gui>()
 
 fun Player.openGui() {
-    val gui = getGui()
+    val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
     val cachedDyeMap = getDyeColorList(this)
     val cachedEffectSet = getEffectList(this)
     var effectToggleState = false
@@ -250,9 +249,7 @@ fun Player.openGui() {
     gui.open(this)
 }
 
-fun Player.getGui() =
-    cachedPlayerGui[this] ?: Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg())
-        .create().also { cachedPlayerGui[this] = it }
+fun Player.getGui() = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
 
 internal fun String.toColor(): Color {
     return when {
