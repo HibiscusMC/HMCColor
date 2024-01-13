@@ -14,6 +14,8 @@ import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -282,13 +284,15 @@ fun getEffectList(player: Player) = effectList.getOrPut(player) {
 
 private val dyeColorList = mutableMapOf<Player, MutableMap<GuiItem, MutableList<GuiItem>>>()
 fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
+    val noPermissionComponent = Component.text("You do not have access to this color!", NamedTextColor.RED)
     mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
-        hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors) ->
+        hmcColor.config.colors.values.forEach baseColor@{ (baseColor, subColors, permission) ->
             val list = mutableListOf<GuiItem>()
             val baseItem = defaultItem
 
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
+                if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                 val color = baseColor.color.toColor()
                 when (this) {
                     is LeatherArmorMeta -> this.setColor(color)
@@ -303,6 +307,7 @@ fun getDyeColorList(player: Player) = dyeColorList.getOrPut(player) {
 
                 subItem.editItemMeta {
                     displayName(subColor.name.miniMsg())
+                    if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                     val color = subColor.color.toColor()
                     when (this) {
                         is LeatherArmorMeta -> this.setColor(color)
