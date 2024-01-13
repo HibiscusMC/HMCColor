@@ -2,6 +2,7 @@ package com.hibiscusmc.hmccolor
 
 import com.mineinabyss.idofront.commands.arguments.playerArg
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
+import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.success
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -13,8 +14,7 @@ class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
     override val commands = commands(hmcColor.plugin) {
         "hmccolor" {
             "dye" {
-                val player: Player by playerArg { default = sender as? Player }
-                action {
+                playerAction {
                     player.openGui()
                 }
             }
