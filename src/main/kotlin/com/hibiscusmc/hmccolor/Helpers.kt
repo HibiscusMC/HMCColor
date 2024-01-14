@@ -247,20 +247,6 @@ fun Player.createColorMenu(): Gui {
     return gui
 }
 
-internal fun String.toColor(): Color {
-    return when {
-        this.startsWith("#") -> return Color.fromRGB(this.substring(1).toInt(16))
-        this.startsWith("0x") -> return Color.fromRGB(this.substring(2).toInt(16))
-        "," in this -> {
-            val colorString = this.replace(" ", "").split(",")
-            if (colorString.any { it.toIntOrNull() == null }) return Color.WHITE
-            Color.fromRGB(colorString[0].toInt(), colorString[1].toInt(), colorString[2].toInt())
-        }
-        //TODO Make this support text, probably through minimessage
-        else -> return Color.WHITE
-    }
-}
-
 internal val noPermissionComponent = Component.text("You do not have access to this color!", NamedTextColor.RED)
 
 fun effectItemList(player: Player) : MutableSet<GuiItem> {
@@ -285,7 +271,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
-                if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                if (permission.isNotEmpty() && !player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                 when (this) {
                     is LeatherArmorMeta -> this.setColor(baseColor.color)
                     is PotionMeta -> this.color = baseColor.color
@@ -299,7 +285,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
                 subItem.editItemMeta {
                     displayName(subColor.name.miniMsg())
-                    if (!player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                    if (permission.isNotEmpty() && !player.hasPermission(permission)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                     when (this) {
                         is LeatherArmorMeta -> this.setColor(subColor.color)
                         is PotionMeta -> this.color = subColor.color

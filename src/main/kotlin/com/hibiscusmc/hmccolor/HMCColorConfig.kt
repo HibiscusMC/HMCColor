@@ -2,10 +2,14 @@ package com.hibiscusmc.hmccolor
 
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.SerializableItemStack
+import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.bukkit.Color
 import org.bukkit.Material
+import org.bukkit.entity.Player
+import org.bukkit.permissions.Permission
 
 @Serializable
 data class HMCColorConfig(
@@ -40,19 +44,28 @@ data class HMCColorConfig(
     )
 
     @Serializable
-    data class Effect(val name: String, @SerialName("color") private val _color: String, val permission: String = "") {
+    data class Effect(val name: String, @SerialName("color") private val _color: String, @SerialName("permission") private val _permission: String = "") {
         @Transient val color = _color.toColor()
+        @Transient val permission = Permission(_permission)
     }
+
     @Serializable
-    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, val permission: String = "")
-    @Serializable
-    data class BaseColor(val name: String, @SerialName("color") private val _color: String) {
-        @Transient val color = _color.toColor()
+    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, @SerialName("permission") internal val _permission: String = "") {
+        @Transient val allColors = setOf(baseColor.color) + subColors.map(SubColor::color).toSet()
+        @Transient val permission: Permission = Permission(_permission)
+        operator fun Colors.component3() = permission
+
+        @Serializable
+        data class BaseColor(val name: String, @SerialName("color") private val _color: String) {
+            @Transient val color = _color.toColor()
+        }
+
+        @Serializable
+        data class SubColor(val name: String, @SerialName("color") private val _color: String) {
+            @Transient val color = _color.toColor()
+        }
     }
-    @Serializable
-    data class SubColor(val name: String, @SerialName("color") private val _color: String) {
-        @Transient val color = _color.toColor()
-    }
+
     @Serializable
     data class BaseColorGrid(
         val first: @Serializable(with = IntRangeSerializer::class) IntRange,
