@@ -44,16 +44,16 @@ data class HMCColorConfig(
     )
 
     @Serializable
-    data class Effect(val name: String, @SerialName("color") private val _color: String, @SerialName("permission") private val _permission: String = "") {
+    data class Effect(val name: String, @SerialName("color") private val _color: String, @SerialName("permission") private val _permission: String? = null) {
         @Transient val color = _color.toColor()
-        @Transient val permission = Permission(_permission)
+        @Transient val permission = _permission.takeUnless { it.isNullOrEmpty() }?.let { Permission(it) }
+        fun canUse(player: Player) = permission?.let { player.hasPermission(it) } ?: true
     }
 
     @Serializable
-    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, @SerialName("permission") internal val _permission: String = "") {
+    data class Colors(val baseColor: BaseColor, val subColors: Set<SubColor>, val permission: String? = null) {
         @Transient val allColors = setOf(baseColor.color) + subColors.map(SubColor::color).toSet()
-        @Transient val permission: Permission = Permission(_permission)
-        operator fun Colors.component3() = permission
+        fun canUse(player: Player) = permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true
 
         @Serializable
         data class BaseColor(val name: String, @SerialName("color") private val _color: String) {
