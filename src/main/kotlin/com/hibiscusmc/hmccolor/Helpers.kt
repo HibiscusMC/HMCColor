@@ -4,6 +4,8 @@ import com.mineinabyss.geary.papermc.GearyPlugin
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
 import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
+import com.mineinabyss.idofront.items.Colorable
+import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
@@ -16,49 +18,44 @@ import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.LeatherArmorMeta
-import org.bukkit.inventory.meta.MapMeta
-import org.bukkit.inventory.meta.PotionMeta
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 fun ItemStack.isOraxenItem() = OraxenItems.exists(this)
-fun ItemStack.getOraxenID(): String? = OraxenItems.getIdByItem(this)
+fun ItemStack.oraxenID(): String? = OraxenItems.getIdByItem(this)
 fun String.isOraxenItem() = OraxenItems.exists(this)
-fun String.getOraxenItem(): ItemStack? = OraxenItems.getItemById(this).build()
+fun String.oraxenITem(): ItemStack? = OraxenItems.getItemById(this).build()
 
 fun ItemStack.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
-fun ItemStack.getCrucibleId(): String? = crucible.itemManager.getItem(this).get().internalName
+fun ItemStack.crucibleID(): String? = crucible.itemManager.getItem(this).get().internalName
 fun String.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
-fun String.getCrucibleItem(): ItemStack? = MythicCrucible.core().itemManager.getItemStack(this)
+fun String.crucibleItem(): ItemStack? = MythicCrucible.core().itemManager.getItemStack(this)
 
 fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
-fun ItemStack.getItemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
+fun ItemStack.itemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
 fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
-fun String.getItemsAdderStack() = CustomStack.getInstance(this)?.itemStack
+fun String.itemsAdderItem() = CustomStack.getInstance(this)?.itemStack
 
 fun ItemStack.isGearyItem() =
     this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
 
-fun ItemStack.getGearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
+fun ItemStack.gearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
 fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
-fun String.getGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) }
+fun String.gearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) }
 
 private fun ItemStack.isDyeable(): Boolean {
-    if (itemMeta !is LeatherArmorMeta && itemMeta !is PotionMeta && itemMeta !is MapMeta) return false
-    hmcColor.config.blacklistedItems.let { blacklist ->
-        return when {
-            Plugins.isEnabled<OraxenPlugin>() && this.isOraxenItem() -> this.getOraxenID() !in blacklist.oraxenItems
-            Plugins.isEnabled<MythicCrucible>() && this.isCrucibleItem() -> this.getCrucibleId() !in blacklist.crucibleItems
-            Plugins.isEnabled("ItemsAdder") && this.isItemsAdderItem() -> this.getItemsAdderID() !in blacklist.itemsadderItems
-            Plugins.isEnabled<GearyPlugin>() && this.isGearyItem() -> this.getGearyID() !in blacklist.gearyItems
-            else -> type !in blacklist.types
-        }
+    val blacklist = hmcColor.config.blacklistedItems
+    return when {
+        itemMeta !is Colorable -> false
+        Plugins.isEnabled("Oraxen") && this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
+        Plugins.isEnabled("MythicCrucible") && this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
+        Plugins.isEnabled("ItemsAdder") && this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
+        Plugins.isEnabled("Geary") && this.isGearyItem() -> this.gearyID() !in blacklist.gearyItems
+        else -> type !in blacklist.types
     }
 }
 
@@ -135,14 +132,7 @@ fun Player.createColorMenu(): Gui {
                                     val guiOutput = GuiItem(guiInput.itemStack.clone())
 
                                     guiOutput.itemStack.editItemMeta {
-                                        val appliedColor = subColor.itemStack.itemMeta?.let { meta ->
-                                            when (meta) {
-                                                is LeatherArmorMeta -> meta.color
-                                                is PotionMeta -> meta.color
-                                                is MapMeta -> meta.color
-                                                else -> null
-                                            }
-                                        } ?: return@subAction
+                                        val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return@subAction
 
                                         // If player lacks permission, skip applying any color to output item
                                         hmcColor.config.effects.values.find { e -> e.color == appliedColor }?.let { colors ->
@@ -154,12 +144,7 @@ fun Player.createColorMenu(): Gui {
                                             if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
                                         }
 
-                                        when (this) {
-                                            is LeatherArmorMeta -> setColor(appliedColor)
-                                            is PotionMeta -> this.color = appliedColor
-                                            is MapMeta -> this.color = appliedColor
-                                            else -> return@subAction
-                                        }
+                                        (this.asColorable() ?: return@subAction).color = appliedColor
                                     }
 
                                     gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
@@ -167,22 +152,14 @@ fun Player.createColorMenu(): Gui {
                                     guiOutput.setAction output@{ click ->
                                         when {
                                             click.isCancelled -> return@output
-                                            click.cursor.type == Material.AIR && click.currentItem != null -> {
+                                            click.cursor.isEmpty && click.currentItem != null -> {
                                                 click.isCancelled = true
                                                 if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
                                                 else click.currentItem?.let { current ->
-                                                    click.whoClicked.inventory.addItem(
-                                                        current
-                                                    )
+                                                    click.whoClicked.inventory.addItem(current)
                                                 }
-                                                gui.updateItem(
-                                                    hmcColor.config.buttons.inputSlot,
-                                                    ItemStack(Material.AIR)
-                                                )
-                                                gui.updateItem(
-                                                    hmcColor.config.buttons.outputSlot,
-                                                    ItemStack(Material.AIR)
-                                                )
+                                                gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack.empty())
+                                                gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack.empty())
                                                 gui.update()
                                             }
                                         }
@@ -203,7 +180,7 @@ fun Player.createColorMenu(): Gui {
     gui.setPlayerInventoryAction { click ->
         if (click.isShiftClick) {
             val inputStack = gui.getGuiItem(hmcColor.config.buttons.inputSlot)?.itemStack
-            if ((inputStack == null || inputStack.type.isAir) && click.currentItem?.isDyeable() == true) {
+            if (inputStack?.isEmpty != false && click.currentItem?.isDyeable() == true) {
                 click.isCancelled = true
                 gui.updateItem(hmcColor.config.buttons.inputSlot, GuiItem(click.currentItem!!))
                 gui.update()
@@ -254,11 +231,7 @@ fun effectItemList(player: Player) : MutableSet<GuiItem> {
         GuiItem(defaultItem.editItemMeta {
             displayName(effect.name.miniMsg())
             if (!effect.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-            when (this) {
-                is LeatherArmorMeta -> this.setColor(effect.color)
-                is PotionMeta -> this.color = effect.color
-                is MapMeta -> this.color = effect.color
-            }
+            this.asColorable()?.color = effect.color
         })
     }.toMutableSet()
 }
@@ -273,11 +246,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
                 if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                when (this) {
-                    is LeatherArmorMeta -> this.setColor(baseColor.color)
-                    is PotionMeta -> this.color = baseColor.color
-                    is MapMeta -> this.color = baseColor.color
-                }
+                this.asColorable()?.color = baseColor.color
             }
 
             // Make the ItemStacks for all subColors
@@ -287,11 +256,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                 subItem.editItemMeta {
                     displayName(subColor.name.miniMsg())
                     if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                    when (this) {
-                        is LeatherArmorMeta -> this.setColor(subColor.color)
-                        is PotionMeta -> this.color = subColor.color
-                        is MapMeta -> this.color = subColor.color
-                    }
+                    this.asColorable()?.color = subColor.color
                 }
 
                 if (list.size >= 7) return@subColor // Only allow for 7 subColor options

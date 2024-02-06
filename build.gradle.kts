@@ -17,20 +17,21 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.mineinabyss.com/releases")
     maven("https://mvn.lumine.io/repository/maven-public/")
     maven("https://jitpack.io")
+    maven("https://repo.oraxen.com/releases")
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
+    mavenLocal()
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
-    compileOnly("com.github.oraxen:oraxen:1.162.0")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.th0rgal:oraxen:1.167.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:geary-papermc:0.25.1")
+    compileOnly("com.mineinabyss:geary-papermc:0.29.10")
 
     implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
     implementation(libs.kotlin.stdlib)

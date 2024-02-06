@@ -1,7 +1,11 @@
 package com.hibiscusmc.hmccolor
 
+import com.charleskorn.kaml.YamlComment
+import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
+import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
 import com.mineinabyss.idofront.serialization.SerializableItemStack
+import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,22 +17,24 @@ import org.bukkit.permissions.Permission
 
 @Serializable
 data class HMCColorConfig(
-    val title: String,
+    val title: String = "<gradient:#aa3159:#8c0c0c>HMCColor",
     val rows: Int = 6,
-    val buttons: Buttons,
-    val blacklistedItems: BlackListedItems,
-    val enableEffectsMenu: Boolean,
-    val effectItem: SerializableItemStack,
-    val effects: Map<String, Effect>,
+    val buttons: Buttons = Buttons(),
+    val blacklistedItems: BlackListedItems = BlackListedItems(),
+    val enableEffectsMenu: Boolean = false,
+    @YamlComment("Can also be: ", "oraxenItem: something", "crucibleItem: something", "itemsadderItem: hmccosmetics:something", "prefab: namespace:something")
+    val effectItem: SerializableItemStack = SerializableItemStack(type = Material.LEATHER_HORSE_ARMOR, displayName = "Effect Toggle".miniMsg(), color = "#FFFCFC".toColor(), customModelData = 11),
+    val effects: Map<String, Effect> = mapOf("space_effect" to Effect("Space Effect", "#FCFC00".toColor(),"hmccolor.effect.space")),
     val colorPermission: String = "hmccolor.dye",
-    val colors: Map<String, Colors>,
+    val colors: Map<String, Colors> = defaultColors
 ) {
 
     @Serializable
     data class Buttons(
-        val item: SerializableItemStack,
-        val inputSlot: Int,
-        val outputSlot: Int,
+        @YamlComment("Can also be: ", "oraxenItem: paintbrush", "crucibleItem: something", "itemsadderItem: hmccosmetics:paintbrush", "prefab: namespace:something")
+        val item: SerializableItemStack = SerializableItemStack(type = Material.LEATHER_HORSE_ARMOR, customModelData = 1),
+        val inputSlot: Int = 19,
+        val outputSlot: Int = 25,
         val baseColorGrid: BaseColorGrid = BaseColorGrid(12..14, 21..23, 30..32),
         val subColorRow: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
         val effectButton: Int = 40
@@ -36,16 +42,15 @@ data class HMCColorConfig(
 
     @Serializable
     data class BlackListedItems(
-        val oraxenItems: List<String>,
-        val crucibleItems: List<String>,
-        val itemsadderItems: List<String>,
-        val gearyItems: List<String>,
-        val types: List<Material>
+        val oraxenItems: List<String> = listOf("banned_oraxen_id"),
+        val crucibleItems: List<String> = listOf("banned_crucible_id"),
+        val itemsadderItems: List<String> = listOf("banned_itemsadder_id"),
+        val gearyItems: List<String> = listOf("banned_geary_id"),
+        val types: List<@Serializable(MaterialByNameSerializer::class) Material> = listOf(Material.LEATHER_CHESTPLATE)
     )
 
     @Serializable
-    data class Effect(val name: String, @SerialName("color") private val _color: String, @SerialName("permission") private val _permission: String? = null) {
-        @Transient val color = _color.toColor()
+    data class Effect(val name: String, val color: @Serializable(ColorSerializer::class) Color, @SerialName("permission") private val _permission: String? = null) {
         @Transient val permission = _permission.takeUnless { it.isNullOrEmpty() }?.let { Permission(it) }
         fun canUse(player: Player) = permission?.let { player.hasPermission(it) } ?: true
     }
@@ -56,14 +61,10 @@ data class HMCColorConfig(
         fun canUse(player: Player) = permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true
 
         @Serializable
-        data class BaseColor(val name: String, @SerialName("color") private val _color: String) {
-            @Transient val color = _color.toColor()
-        }
+        data class BaseColor(val name: String, val color: @Serializable(ColorSerializer::class) Color)
 
         @Serializable
-        data class SubColor(val name: String, @SerialName("color") private val _color: String) {
-            @Transient val color = _color.toColor()
-        }
+        data class SubColor(val name: String, val color: @Serializable(ColorSerializer::class) Color)
     }
 
     @Serializable
@@ -72,6 +73,120 @@ data class HMCColorConfig(
         val second: @Serializable(with = IntRangeSerializer::class) IntRange,
         val third: @Serializable(with = IntRangeSerializer::class) IntRange
     )
+
+    companion object {
+        private val defaultColors = mapOf(
+            "red" to Colors(
+                Colors.BaseColor("<#D23635>Red", "210,54,53".toColor()),
+                setOf(
+                    Colors.SubColor("<#ff0000>Light Red", "#FF0000".toColor()),
+                    Colors.SubColor("<#CE2029>Fire Engine Red", "#CE2029".toColor()),
+                    Colors.SubColor("<#66023C>Tyrian Red", "#66023C".toColor()),
+                    Colors.SubColor("<#C71585>Red Violet", "#C71585".toColor()),
+                    Colors.SubColor("<#B3446C>Raspberry Red", "#B3446C".toColor()),
+                    Colors.SubColor("<#DE3163>Cerise Red", "#DE3163".toColor()),
+                    Colors.SubColor("<#FF6961>Neon Red", "#FF6961".toColor())
+                )
+            ),
+            "orange" to Colors(
+                Colors.BaseColor("<#EA5C2B>Orange", "234,92,43".toColor()),
+                setOf(
+                    Colors.SubColor("<#ff9f00>Orange Peel", "#FF9F00".toColor()),
+                    Colors.SubColor("<#ffa500>Light Orange", "#FFA500".toColor()),
+                    Colors.SubColor("<#f28500>Tangerine Orange", "#F28500".toColor()),
+                    Colors.SubColor("<#ffb347>Pastel Orange", "#FFB347".toColor()),
+                    Colors.SubColor("<#e24c00>Bright Orange", "#E24C00".toColor()),
+                    Colors.SubColor("<#EC5800>Persimmon Orange", "#EC5800".toColor()),
+                    Colors.SubColor("<#ffa500>Orange", "#FFA500".toColor())
+                )
+            ),
+            // Add other colors in a similar manner
+            "blue" to Colors(
+                Colors.BaseColor("<#3731B5>Blue", "55,49,181".toColor()),
+                setOf(
+                    Colors.SubColor("<#318CE7>France Blue", "#318CE7".toColor()),
+                    Colors.SubColor("<#034694>Chelsea Blue", "#034694".toColor()),
+                    Colors.SubColor("<#007FFF>Azure Blue", "#007FFF".toColor()),
+                    Colors.SubColor("<#0000FF>Blue", "#0000FF".toColor()),
+                    Colors.SubColor("<#13274F>Braves Navy", "#13274F".toColor()),
+                    Colors.SubColor("<#00008B>Dark Blue", "#00008B".toColor()),
+                    Colors.SubColor("<#6495ED>Cornflower Blue", "#6495ED".toColor())
+                )
+            ),
+            "light_blue" to Colors(
+                Colors.BaseColor("<#32ECE8>Light Blue", "#99FFFF".toColor()),
+                setOf(
+                    Colors.SubColor("<#0CAFFF>Chlorine Blue", "#0CAFFF".toColor()),
+                    Colors.SubColor("<#00BFFF>Deep Sky Blue", "#0CBFFF".toColor()),
+                    Colors.SubColor("<#7DF9FF>Eletric Blue", "#7DF9FF".toColor()),
+                    Colors.SubColor("<#87CEFA>Light Sky Blue", "#87CEFA".toColor()),
+                    Colors.SubColor("<#73C2FB>Maya Blue", "#73C2FB".toColor()),
+                    Colors.SubColor("<#7CB9E8>Aero Blue", "#7CB9E8".toColor()),
+                    Colors.SubColor("<#99FFFF>Ice Blue", "#99FFFF".toColor())
+                )
+            ),
+            "yellow" to Colors(
+                Colors.BaseColor("<#FFC900>Yellow", "255,201,0".toColor()),
+                setOf(
+                    Colors.SubColor("<#FDDE6C>Golden Rod", "#FDDE6C".toColor()),
+                    Colors.SubColor("<#FFF44F>Lemon Yellow", "#FFF44F".toColor()),
+                    Colors.SubColor("<#FFEF00>Canary Yellow", "#FFEF00".toColor()),
+                    Colors.SubColor("<#FFD00A>Citrine Yellow", "#FFD00A".toColor()),
+                    Colors.SubColor("<#F1FF62>Lazer Lemon Yellow", "#F1FF62".toColor()),
+                    Colors.SubColor("<#E8DE2A>Sunflower Yellow", "#E8DE2A".toColor()),
+                    Colors.SubColor("<#FFD800>School Bus Yellow", "#FFD800".toColor())
+                )
+            ),
+            "pink" to Colors(
+                Colors.BaseColor("<#FC35FA>Pink", "#FC35FA".toColor()),
+                setOf(
+                    Colors.SubColor("<#fc8eac>Flamingo Pink", "#FC8EAC".toColor()),
+                    Colors.SubColor("<#fc6c85>Watermelon Color", "#FC6C85".toColor()),
+                    Colors.SubColor("<#ff77ff>Fuchsia Pink", "#FF77FF".toColor()),
+                    Colors.SubColor("<#ff69b4>Hot Pink", "#FF69B4".toColor()),
+                    Colors.SubColor("<#e75480>Dark Pink", "#E75480".toColor()),
+                    Colors.SubColor("<#ffd1dc>Pastel Pink", "#FFD1DC".toColor()),
+                    Colors.SubColor("<#de5d83>Blush Pink", "#8c0c1c".toColor())
+                )
+            ),
+            "white" to Colors(
+                Colors.BaseColor("<#FFFFFF>White", "255,255,255".toColor()),
+                setOf(
+                    Colors.SubColor("<#FFFFFF>White", "#FFFFFF".toColor()),
+                    Colors.SubColor("<#fdf5e6>Old Lace White", "#FDF5E6".toColor()),
+                    Colors.SubColor("<#faf0e6>Linen White", "#FAF0E6".toColor()),
+                    Colors.SubColor("<#f5f5f5>White Smoke", "#F5F5F5".toColor()),
+                    Colors.SubColor("<#808080>Light Grey", "#808080".toColor()),
+                    Colors.SubColor("<#2a2727>Dark Grey", "#2A2727".toColor()),
+                    Colors.SubColor("<#000000>Black", "#000000".toColor())
+                )
+            ),
+            "green" to Colors(
+                Colors.BaseColor("<#A3DA8D>Green", "163,218,141".toColor()),
+                setOf(
+                    Colors.SubColor("<#32cd32>Lime Green", "#32CD32".toColor()),
+                    Colors.SubColor("<#4cbb17>Kelly Green", "#4CBB17".toColor()),
+                    Colors.SubColor("<#7fff00>Chartreuse Green", "#7FFF00".toColor()),
+                    Colors.SubColor("<#006400>Dark Green", "#006400".toColor()),
+                    Colors.SubColor("<#228b22>Forest Green", "#228B22".toColor()),
+                    Colors.SubColor("<#39ff14>Neon Green", "#39FF14".toColor()),
+                    Colors.SubColor("<#4f7942>Fern Green", "#4F7942".toColor())
+                )
+            ),
+            "purple" to Colors(
+                Colors.BaseColor("<#8946A6>Purple", "137,70,166".toColor()),
+                setOf(
+                    Colors.SubColor("<#9966cc>Amethyst Purple", "#9966CC".toColor()),
+                    Colors.SubColor("<#4B0082>Indigo Purple", "#4B0082".toColor()),
+                    Colors.SubColor("<#551a8b>Dark Purple", "#551A8B".toColor()),
+                    Colors.SubColor("<#6f2da8>Grape Purple", "#6F2DA8".toColor()),
+                    Colors.SubColor("<#bf00ff>Electric Purple", "#BF00FF".toColor()),
+                    Colors.SubColor("<#7851a9>Royal Purple", "#7851A9".toColor()),
+                    Colors.SubColor("<#6f2da8>Lilac Purple", "#B666D2".toColor())
+                )
+            )
+        )
+    }
 }
 
 
