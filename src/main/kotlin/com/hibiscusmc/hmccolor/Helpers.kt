@@ -1,12 +1,16 @@
 package com.hibiscusmc.hmccolor
 
+import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
+import com.mineinabyss.geary.papermc.datastore.encode
+import com.mineinabyss.geary.papermc.tracking.items.components.SetItemIgnoredProperties
 import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.Colorable
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
+import com.mineinabyss.idofront.serialization.BaseSerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.components.GuiType
@@ -143,6 +147,12 @@ fun Player.createColorMenu(): Gui {
                                         }
 
                                         (this.asColorable() ?: return@subAction).color = appliedColor
+                                        if (guiOutput.itemStack.isGearyItem()) {
+                                            this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.let { ignoredProps ->
+                                                val newIgnoredProps = ignoredProps.ignore.plus(BaseSerializableItemStack.Properties.COLOR)
+                                                this.persistentDataContainer.encode(SetItemIgnoredProperties(newIgnoredProps))
+                                            }
+                                        }
                                     }
 
                                     gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
