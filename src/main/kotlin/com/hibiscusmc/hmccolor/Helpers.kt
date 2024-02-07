@@ -18,9 +18,13 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.api.OraxenItems
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import kotlin.math.max
@@ -61,6 +65,7 @@ private fun ItemStack.isDyeable(): Boolean {
     }
 }
 
+@OptIn(InternalSerializationApi::class)
 fun Player.createColorMenu(): Gui {
     val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
     val cachedDyeMap = dyeColorItemMap(this)
@@ -147,12 +152,10 @@ fun Player.createColorMenu(): Gui {
                                         }
 
                                         (this.asColorable() ?: return@subAction).color = appliedColor
-                                        if (guiOutput.itemStack.isGearyItem()) {
-                                            this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.let { ignoredProps ->
-                                                val newIgnoredProps = ignoredProps.ignore.plus(BaseSerializableItemStack.Properties.COLOR)
-                                                this.persistentDataContainer.encode(SetItemIgnoredProperties(newIgnoredProps))
-                                            }
-                                        }
+                                        /*if (guiOutput.itemStack.isGearyItem()) {
+                                            val ignores = this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.ignore ?: emptySet()
+                                            this.persistentDataContainer.encode(SetItemIgnoredProperties(ignores.plus(BaseSerializableItemStack.Properties.COLOR)))
+                                        }*/
                                     }
 
                                     gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
@@ -162,10 +165,13 @@ fun Player.createColorMenu(): Gui {
                                             click.isCancelled -> return@output
                                             click.cursor.isEmpty && click.currentItem != null -> {
                                                 click.isCancelled = true
-                                                if (!click.isShiftClick) click.whoClicked.setItemOnCursor(click.currentItem)
-                                                else click.currentItem?.let { current ->
-                                                    click.whoClicked.inventory.addItem(current)
+                                                click.currentItem?.editItemMeta {
+                                                    persistentDataContainer.remove(NamespacedKey(hmcColor.plugin, "mf-gui"))
+                                                }?.let {
+                                                    if (!click.isShiftClick) click.whoClicked.setItemOnCursor(it)
+                                                    else click.whoClicked.inventory.addItem(it)
                                                 }
+
                                                 gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack.empty())
                                                 gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack.empty())
                                                 gui.update()
