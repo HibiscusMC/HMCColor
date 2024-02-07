@@ -140,7 +140,7 @@ data class HMCColorConfig(
     @Serializable
     data class SubColorGrid(
         val type: Type = Type.NORMAL,
-        val normalRow: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
+        val normalRows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(46..52),
         val scrollingGrid: Scrolling = Scrolling(),
     ) {
 

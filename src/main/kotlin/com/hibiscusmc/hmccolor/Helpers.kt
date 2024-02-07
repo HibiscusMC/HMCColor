@@ -202,23 +202,24 @@ private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, player: Player
     val subColorGrid = hmcColor.config.buttons.subColorGrid
     when (subColorGrid.type) {
         HMCColorConfig.SubColorGrid.Type.NORMAL -> {
-            val subColorRow = subColorGrid.normalRow
-            // Find the middle of given IntRange
-            val middleSubColor = subColorRow.first + subColorRow.count() / 2
-            // Subtract 0.1 because we want to round down on .5
-            val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
-            val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
-            range.forEachIndexed { index, i ->
-                val item  = dyeMap.getOrNull(index) ?: GuiItem(Material.AIR)
-                item.setAction subAction@{ click ->
-                    when {
-                        click.isShiftClick -> return@subAction
-                        (click.isLeftClick && (item in cachedDyeMap.values.flatten() || item in cachedEffectSet)) -> {
-                            handleSubColorClick(gui, click, item)
+            subColorGrid.normalRows.forEach { subColorRow ->
+                // Find the middle of given IntRange
+                val middleSubColor = subColorRow.first + subColorRow.count() / 2
+                // Subtract 0.1 because we want to round down on .5
+                val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
+                val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
+                range.forEachIndexed { index, i ->
+                    val item  = dyeMap.getOrNull(index) ?: GuiItem(Material.AIR)
+                    item.setAction subAction@{ click ->
+                        when {
+                            click.isShiftClick -> return@subAction
+                            (click.isLeftClick && (item in cachedDyeMap.values.flatten() || item in cachedEffectSet)) -> {
+                                handleSubColorClick(gui, click, item)
+                            }
                         }
                     }
+                    gui.updateItem(i, item)
                 }
-                gui.updateItem(i, item)
             }
         }
         HMCColorConfig.SubColorGrid.Type.SCROLLING -> {
