@@ -83,6 +83,7 @@ fun Player.createColorMenu(): Gui {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
                         fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        gui.clearOutputItem()
                     }
                 })
             }
@@ -94,8 +95,10 @@ fun Player.createColorMenu(): Gui {
                     effectToggleState = false
                     val dyeMap = cachedDyeMap[item] ?: return@setAction
                     fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                    gui.clearOutputItem()
                 }
                 gui.setItem(slot, item)
+                gui.clearOutputItem()
             }
 
             val scrollLeft = buttons.scrollLeft ?: baseRow.first().minus(1)
@@ -107,9 +110,11 @@ fun Player.createColorMenu(): Gui {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
                         fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
                     gui.updateItem(slot, item)
+                    gui.clearOutputItem()
                 }
             })
             gui.setItem(scrollRight, ItemBuilder.from(buttons.scrollRightItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
@@ -119,9 +124,11 @@ fun Player.createColorMenu(): Gui {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
                         fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
                     gui.updateItem(slot, item)
+                    gui.clearOutputItem()
                 }
             })
         }
@@ -184,6 +191,10 @@ fun Player.createColorMenu(): Gui {
     }
 
     return gui
+}
+
+private fun Gui.clearOutputItem() {
+    updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
 }
 
 private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, player: Player, dyeMap: List<GuiItem>, cachedDyeMap: Map<GuiItem, List<GuiItem>>, cachedEffectSet: Set<GuiItem>) {

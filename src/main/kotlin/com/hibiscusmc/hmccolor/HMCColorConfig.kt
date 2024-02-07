@@ -146,7 +146,7 @@ data class HMCColorConfig(
 
         @Serializable
         data class Scrolling(
-            val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
+            val row: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
             val left: Int = 36,
             val right: Int = 45,
             val leftItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg()),
