@@ -1,6 +1,5 @@
 package com.hibiscusmc.hmccolor
 
-import com.mineinabyss.geary.papermc.GearyPlugin
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
 import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
@@ -14,7 +13,6 @@ import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
-import io.th0rgal.oraxen.OraxenPlugin
 import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -25,36 +23,36 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-fun ItemStack.isOraxenItem() = OraxenItems.exists(this)
-fun ItemStack.oraxenID(): String? = OraxenItems.getIdByItem(this)
-fun String.isOraxenItem() = OraxenItems.exists(this)
-fun String.oraxenITem(): ItemStack? = OraxenItems.getItemById(this).build()
+fun ItemStack.isOraxenItem() = Plugins.isEnabled("Oraxen") && OraxenItems.exists(this)
+fun ItemStack.oraxenID(): String? = if (Plugins.isEnabled("Oraxen")) OraxenItems.getIdByItem(this) else null
+fun String.isOraxenItem() = Plugins.isEnabled("Oraxen") && OraxenItems.exists(this)
+fun String.oraxenItem(): ItemStack? = if (Plugins.isEnabled("Oraxen")) OraxenItems.getItemById(this).build() else null
 
-fun ItemStack.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
-fun ItemStack.crucibleID(): String? = crucible.itemManager.getItem(this).get().internalName
-fun String.isCrucibleItem() = crucible.itemManager.getItem(this).isPresent
-fun String.crucibleItem(): ItemStack? = MythicCrucible.core().itemManager.getItemStack(this)
+fun ItemStack.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && crucible.itemManager.getItem(this).isPresent
+fun ItemStack.crucibleID(): String? = if (Plugins.isEnabled("MythicCrucible")) crucible.itemManager.getItem(this).get().internalName else null
+fun String.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && crucible.itemManager.getItem(this).isPresent
+fun String.crucibleItem(): ItemStack? = if (Plugins.isEnabled("MythicCrucible")) MythicCrucible.core().itemManager.getItemStack(this) else null
 
-fun ItemStack.isItemsAdderItem() = CustomStack.byItemStack(this) != null
-fun ItemStack.itemsAdderID() = CustomStack.byItemStack(this)?.namespacedID
-fun String.isItemsAdderItem() = CustomStack.isInRegistry(this)
-fun String.itemsAdderItem() = CustomStack.getInstance(this)?.itemStack
+fun ItemStack.isItemsAdderItem() = Plugins.isEnabled("ItemsAdder") && CustomStack.byItemStack(this) != null
+fun ItemStack.itemsAdderID() = if (Plugins.isEnabled("ItemsAdder")) CustomStack.byItemStack(this)?.namespacedID else null
+fun String.isItemsAdderItem() = Plugins.isEnabled("ItemsAdder") && CustomStack.isInRegistry(this)
+fun String.itemsAdderItem() = if (Plugins.isEnabled("ItemsAdder")) CustomStack.getInstance(this)?.itemStack else null
 
-fun ItemStack.isGearyItem() =
+fun ItemStack.isGearyItem() = Plugins.isEnabled("Geary") &&
     this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
 
 fun ItemStack.gearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
-fun String.isGearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
-fun String.gearyItem() = PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) }
+fun String.isGearyItem() = Plugins.isEnabled("Geary") && PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
+fun String.gearyItem() = if (Plugins.isEnabled("Geary")) PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) } else null
 
 private fun ItemStack.isDyeable(): Boolean {
     val blacklist = hmcColor.config.blacklistedItems
     return when {
         itemMeta !is Colorable -> false
-        Plugins.isEnabled("Oraxen") && this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
-        Plugins.isEnabled("MythicCrucible") && this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
-        Plugins.isEnabled("ItemsAdder") && this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
-        Plugins.isEnabled("Geary") && this.isGearyItem() -> this.gearyID() !in blacklist.gearyItems
+        this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
+        this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
+        this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
+        this.isGearyItem() -> this.gearyID() !in blacklist.gearyItems
         else -> type !in blacklist.types
     }
 }
