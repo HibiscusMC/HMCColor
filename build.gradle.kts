@@ -4,7 +4,7 @@ import kotlin.io.path.absolutePathString
 
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id ("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id ("org.jetbrains.kotlin.jvm") version "1.9.20"
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.mia.copyjar)
 }
@@ -31,7 +31,7 @@ dependencies {
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:geary-papermc:0.29.10")
+    compileOnly("com.mineinabyss:geary-papermc:0.29.11")
 
     implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
     implementation(libs.kotlin.stdlib)
@@ -51,7 +51,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-val buildPath = project.findProperty("hibiscusmc_plugin_path") as? String?
+val buildPath = project.findProperty("plugin_path") as? String?
 copyJar {
     this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
     this.jarName.set("HMCColor-${pluginVersion}.jar")

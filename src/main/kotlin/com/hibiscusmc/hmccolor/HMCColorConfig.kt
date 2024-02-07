@@ -191,8 +191,8 @@ data class HMCColorConfig(
                     Colors.SubColor("<#FDF5E6>Old Lace White", "#FDF5E6".toColor()),
                     Colors.SubColor("<#FAF0E6>Linen White", "#FAF0E6".toColor()),
                     Colors.SubColor("<#F5F5F5>White Smoke", "#F5F5F5".toColor()),
-                    Colors.SubColor("<#808080>Light Grey", "#808080".toColor()),
-                    Colors.SubColor("<#2A2727>Dark Grey", "#2A2727".toColor()),
+                    Colors.SubColor("<#808080>Light Gray", "#808080".toColor()),
+                    Colors.SubColor("<#2A2727>Dark Gray", "#2A2727".toColor()),
                     Colors.SubColor("<#000000>Black", "#000000".toColor())
                 )
             ),

@@ -43,7 +43,7 @@ fun String.isItemsAdderItem() = Plugins.isEnabled("ItemsAdder") && CustomStack.i
 fun String.itemsAdderItem() = if (Plugins.isEnabled("ItemsAdder")) CustomStack.getInstance(this)?.itemStack else null
 
 fun ItemStack.isGearyItem() = Plugins.isEnabled("Geary") &&
-    this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.let { gearyItems.createItem(it) != null } ?: false
+    this.itemMeta?.persistentDataContainer?.decodePrefabs()?.firstOrNull()?.let { gearyItems.createItem(it) != null } ?: false
 
 fun ItemStack.gearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
 fun String.isGearyItem() = Plugins.isEnabled("Geary") && PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
@@ -52,7 +52,7 @@ fun String.gearyItem() = if (Plugins.isEnabled("Geary")) PrefabKey.ofOrNull(this
 private fun ItemStack.isDyeable(): Boolean {
     val blacklist = hmcColor.config.blacklistedItems
     return when {
-        itemMeta !is Colorable -> false
+        (itemMeta as? Colorable) != null -> false
         this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
         this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
         this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
