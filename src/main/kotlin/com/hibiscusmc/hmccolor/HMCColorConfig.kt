@@ -109,6 +109,7 @@ data class HMCColorConfig(
 
     @Serializable
     data class BaseColorGrid(
+        @YamlComment("Valid types are: NORMAL, SCROLLING")
         val type: Type = Type.NORMAL,
         val normalGrid: Normal = Normal(),
         val scrollingGrid: Scrolling = Scrolling(),
@@ -139,18 +140,26 @@ data class HMCColorConfig(
 
     @Serializable
     data class SubColorGrid(
+        @YamlComment("Valid types are: NORMAL, SCROLLING")
         val type: Type = Type.NORMAL,
-        val normalRows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(46..52),
+        val normalGrid: Normal = Normal(),
         val scrollingGrid: Scrolling = Scrolling(),
     ) {
 
         @Serializable
+        data class Normal(
+            @YamlComment("Whether or not to ignore the listed subcolors and instead use a gradient from the white->baseColor->black.")
+            val autoFillColorGradient: Boolean = true,
+            val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(37..39, 46..48, 55..57)
+        )
+
+        @Serializable
         data class Scrolling(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
-            val left: Int = 36,
-            val right: Int = 45,
-            val leftItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg()),
-            val rightItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll sub-colors forward".miniMsg())
+            val backwardsSlot: Int = 36,
+            val forwardsSlot: Int = 45,
+            val backwardsItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg()),
+            val forwardsItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll sub-colors forward".miniMsg())
         )
         enum class Type {
             NORMAL, SCROLLING

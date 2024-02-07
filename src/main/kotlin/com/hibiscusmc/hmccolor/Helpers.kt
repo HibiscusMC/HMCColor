@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package com.hibiscusmc.hmccolor
 
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
@@ -8,6 +10,7 @@ import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import com.mineinabyss.idofront.util.ColorHelpers
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.builder.item.ItemBuilder
 import dev.triumphteam.gui.components.GuiType
@@ -17,6 +20,8 @@ import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
+import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
@@ -79,10 +84,10 @@ fun Player.createColorMenu(): Gui {
         HMCColorConfig.BaseColorGrid.Type.NORMAL -> baseColorGrid.normalGrid.rows.forEachIndexed { rowIndex, row ->
             row.forEachIndexed { index, int ->
                 gui.setItem(int, cachedDyeMap.keys.elementAt(index + 3 * rowIndex).also { item ->
-                    item.setAction { click ->
+                    item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
                         gui.clearOutputItem()
                     }
                 })
@@ -91,10 +96,10 @@ fun Player.createColorMenu(): Gui {
         HMCColorConfig.BaseColorGrid.Type.SCROLLING -> {
             val baseRow = baseColorGrid.scrollingGrid.row
             cachedDyeMap.keys.toList().zip(baseRow).forEach { (item, slot) ->
-                item.setAction { click ->
+                item.setAction {
                     effectToggleState = false
                     val dyeMap = cachedDyeMap[item] ?: return@setAction
-                    fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                    fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
                     gui.clearOutputItem()
                 }
                 gui.setItem(slot, item)
@@ -106,10 +111,10 @@ fun Player.createColorMenu(): Gui {
             gui.setItem(scrollLeft, ItemBuilder.from(buttons.scrollLeftItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
                 cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
-                    item.setAction { click ->
+                    item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
                         gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
@@ -120,10 +125,10 @@ fun Player.createColorMenu(): Gui {
             gui.setItem(scrollRight, ItemBuilder.from(buttons.scrollRightItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
                 cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
-                    item.setAction { click ->
+                    item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
                         gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
@@ -140,9 +145,9 @@ fun Player.createColorMenu(): Gui {
         click.isCancelled = true
         effectToggleState = !effectToggleState
         val dyeMap = if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
-        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
+        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
     }
-    effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
+    effectItem?.let { gui.setItem(buttons.effectButton, it) }
 
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
@@ -197,19 +202,25 @@ private fun Gui.clearOutputItem() {
     updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
 }
 
-private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, player: Player, dyeMap: List<GuiItem>, cachedDyeMap: Map<GuiItem, List<GuiItem>>, cachedEffectSet: Set<GuiItem>) {
+private fun fillSubColorRow(
+    gui: Gui,
+    player: Player,
+    dyeMap: List<GuiItem>,
+    cachedDyeMap: Map<GuiItem, List<GuiItem>>,
+    cachedEffectSet: Set<GuiItem>
+) {
     subColorScrollingIndex[player.uniqueId] = 0 // Reset if player was in before
     val subColorGrid = hmcColor.config.buttons.subColorGrid
     when (subColorGrid.type) {
         HMCColorConfig.SubColorGrid.Type.NORMAL -> {
-            subColorGrid.normalRows.forEach { subColorRow ->
+            subColorGrid.normalGrid.rows.forEachIndexed { rowIndex, subColorRow ->
                 // Find the middle of given IntRange
                 val middleSubColor = subColorRow.first + subColorRow.count() / 2
                 // Subtract 0.1 because we want to round down on .5
                 val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
                 val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
                 range.forEachIndexed { index, i ->
-                    val item  = dyeMap.getOrNull(index) ?: GuiItem(Material.AIR)
+                    val item  = dyeMap.getOrNull(index + 9 * rowIndex) ?: GuiItem(Material.AIR)
                     item.setAction subAction@{ click ->
                         when {
                             click.isShiftClick -> return@subAction
@@ -302,17 +313,32 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
             }
 
             // Make the ItemStacks for all subColors
-            subColors.forEach subColor@{ subColor ->
-                val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
+            val subColorGrid = hmcColor.config.buttons.subColorGrid
+            val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
+            if (subColors.isEmpty() || (subColorGrid.type == HMCColorConfig.SubColorGrid.Type.NORMAL && subColorGrid.normalGrid.autoFillColorGradient)) {
+                val centerColor = "#" + baseColor.color.asARGB().toHexString(ColorHelpers.hexFormat).substring(2)
+                val count = subColorGrid.normalGrid.rows.flatten().count() + 14
+                val gradientComponent = ("<gradient:white:$centerColor:black>" + "X".repeat(count)).miniMsg()
 
-                subItem.editItemMeta {
-                    displayName(subColor.name.miniMsg())
-                    if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                    this.asColorable()?.color = subColor.color
+                gradientComponent.children().mapNotNull { it.color()?.takeUnless { c -> c.isCloseToWhite || c.isCloseToBlack } }.forEach {
+                    subItem.clone().editItemMeta {
+                        displayName(Component.empty())
+                        if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        this.asColorable()?.color = Color.fromRGB(it.value())
+                    }.let {
+                        list += GuiItem(it)
+                    }
                 }
+            } else {
+                subColors.forEach subColor@{ subColor ->
+                    subItem.editItemMeta {
+                        displayName(subColor.name.miniMsg())
+                        if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        this.asColorable()?.color = subColor.color
+                    }
 
-                if (list.size >= 7) return@subColor // Only allow for 7 subColor options
-                list += GuiItem(subItem)
+                    list += GuiItem(subItem)
+                }
             }
             if (this.size >= 9) return@baseColor // only show the first 9 baseColors
 
@@ -321,6 +347,11 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
     }
 }
 
+private val TextColor.isCloseToWhite
+    get() = red() > 200 && green() > 200 && blue() > 200
+
+private val TextColor.isCloseToBlack
+    get() = red() < 50 && green() < 50 && blue() < 50
 
 private val defaultItem
     get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
