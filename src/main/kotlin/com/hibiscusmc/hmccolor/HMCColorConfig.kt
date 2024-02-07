@@ -13,7 +13,6 @@ import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.permissions.Permission
-import java.io.Serial
 
 @Serializable
 data class HMCColorConfig(
@@ -61,8 +60,8 @@ data class HMCColorConfig(
         ),
         val inputSlot: Int = 19,
         val outputSlot: Int = 25,
-        val baseColorGrid: BaseColorGrid = BaseColorGrid(BaseColorGrid.Type.NORMAL, listOf(12..14, 21..23, 30..32)),
-        val subColorRow: SubColorGrid = SubColorGrid(SubColorGrid.Type.NORMAL, listOf(46..52)),
+        val baseColorGrid: BaseColorGrid = BaseColorGrid(),
+        val subColorGrid: SubColorGrid = SubColorGrid(),
         val effectButton: Int = 40,
         @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollLeft: Int? = null,//baseColorGrid.rows.first().firstOrNull()?.minus(1),
         @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollRight: Int? = null,//baseColorGrid.rows.last().lastOrNull()?.plus(1) ?: 8,
@@ -110,9 +109,29 @@ data class HMCColorConfig(
 
     @Serializable
     data class BaseColorGrid(
-        val type: Type,
-        val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange>,
+        val type: Type = Type.NORMAL,
+        val normalGrid: Normal = Normal(),
+        val scrollingGrid: Scrolling = Scrolling(),
     ) {
+
+        @Serializable
+        data class Normal(
+            val first: @Serializable(with = IntRangeSerializer::class) IntRange = 12..14,
+            val second: @Serializable(with = IntRangeSerializer::class) IntRange = 21..23,
+            val third: @Serializable(with = IntRangeSerializer::class) IntRange = 30..32
+        ) {
+            val rows get() = listOf(first, second, third)
+        }
+
+        @Serializable
+        data class Scrolling(
+            val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
+            val left: Int = 8,
+            val right: Int = 17,
+            val leftItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll base-colors backwards".miniMsg()),
+            val rightItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll base-colors forward".miniMsg())
+        )
+
         enum class Type {
             NORMAL, SCROLLING
         }
@@ -120,9 +139,19 @@ data class HMCColorConfig(
 
     @Serializable
     data class SubColorGrid(
-        val type: Type,
-        val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange>,
+        val type: Type = Type.NORMAL,
+        val normalRow: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
+        val scrollingGrid: Scrolling = Scrolling(),
     ) {
+
+        @Serializable
+        data class Scrolling(
+            val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
+            val left: Int = 36,
+            val right: Int = 45,
+            val leftItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg()),
+            val rightItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll sub-colors forward".miniMsg())
+        )
         enum class Type {
             NORMAL, SCROLLING
         }

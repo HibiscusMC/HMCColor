@@ -72,26 +72,28 @@ fun Player.createColorMenu(): Gui {
 
     val buttons = hmcColor.config.buttons
     val baseColorGrid = buttons.baseColorGrid
+
+    baseColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
+    subColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
     when (baseColorGrid.type) {
-        HMCColorConfig.BaseColorGrid.Type.NORMAL -> baseColorGrid.rows.forEachIndexed { rowIndex, row ->
+        HMCColorConfig.BaseColorGrid.Type.NORMAL -> baseColorGrid.normalGrid.rows.forEachIndexed { rowIndex, row ->
             row.forEachIndexed { index, int ->
                 gui.setItem(int, cachedDyeMap.keys.elementAt(index + 3 * rowIndex).also { item ->
                     item.setAction { click ->
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
                     }
                 })
             }
         }
         HMCColorConfig.BaseColorGrid.Type.SCROLLING -> {
-            val baseRow = baseColorGrid.rows.first()
-            baseColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
+            val baseRow = baseColorGrid.scrollingGrid.row
             cachedDyeMap.keys.toList().zip(baseRow).forEach { (item, slot) ->
                 item.setAction { click ->
                     effectToggleState = false
                     val dyeMap = cachedDyeMap[item] ?: return@setAction
-                    fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                    fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
                 }
                 gui.setItem(slot, item)
             }
@@ -104,7 +106,7 @@ fun Player.createColorMenu(): Gui {
                     item.setAction { click ->
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
                     }
                     gui.setItem(slot, item)
                     gui.updateItem(slot, item)
@@ -116,7 +118,7 @@ fun Player.createColorMenu(): Gui {
                     item.setAction { click ->
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
                     }
                     gui.setItem(slot, item)
                     gui.updateItem(slot, item)
@@ -131,7 +133,7 @@ fun Player.createColorMenu(): Gui {
         click.isCancelled = true
         effectToggleState = !effectToggleState
         val dyeMap = if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
-        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+        fillSubColorRow(gui, click, this, dyeMap, cachedDyeMap, cachedEffectSet)
     }
     effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
 
@@ -184,32 +186,35 @@ fun Player.createColorMenu(): Gui {
     return gui
 }
 
-private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, dyeMap: List<GuiItem>, cachedDyeMap: Map<GuiItem, List<GuiItem>>, cachedEffectSet: Set<GuiItem>) {
-    val subColorRow = hmcColor.config.buttons.subColorRow.rows.first()
-    //Reset bottom
-    subColorRow.forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
-    // Find the middle of given IntRange
-    val middleSubColor = subColorRow.first + subColorRow.count() / 2
-    // Subtract 0.1 because we want to round down on .5
-    val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
-    val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
-    range.forEachIndexed { index, i ->
-        gui.updateItem(
-            i,
-            runCatching { // if effect is toggled, we fill based on effect list, otherwise it's a dye color
-                dyeMap[index]
-            }.getOrNull() ?: GuiItem(Material.AIR)
-        )
-        val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
-        subColor.setAction subAction@{
-            when {
-                it.isShiftClick -> return@subAction
-                (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
-                    handleSubColorClick(gui, it, subColor)
+private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, player: Player, dyeMap: List<GuiItem>, cachedDyeMap: Map<GuiItem, List<GuiItem>>, cachedEffectSet: Set<GuiItem>) {
+    subColorScrollingIndex[player.uniqueId] = 0 // Reset if player was in before
+    val subColorGrid = hmcColor.config.buttons.subColorGrid
+    when (subColorGrid.type) {
+        HMCColorConfig.SubColorGrid.Type.NORMAL -> {
+            val subColorRow = subColorGrid.normalRow
+            // Find the middle of given IntRange
+            val middleSubColor = subColorRow.first + subColorRow.count() / 2
+            // Subtract 0.1 because we want to round down on .5
+            val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
+            val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
+            range.forEachIndexed { index, i ->
+                val item  = dyeMap.getOrNull(index) ?: GuiItem(Material.AIR)
+                item.setAction subAction@{ click ->
+                    when {
+                        click.isShiftClick -> return@subAction
+                        (click.isLeftClick && (item in cachedDyeMap.values.flatten() || item in cachedEffectSet)) -> {
+                            handleSubColorClick(gui, click, item)
+                        }
+                    }
                 }
+                gui.updateItem(i, item)
             }
         }
+        HMCColorConfig.SubColorGrid.Type.SCROLLING -> {
+
+        }
     }
+
 }
 
 private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: GuiItem) {
