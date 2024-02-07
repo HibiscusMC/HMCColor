@@ -1,32 +1,28 @@
 package com.hibiscusmc.hmccolor
 
-import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
-import com.mineinabyss.geary.papermc.datastore.encode
-import com.mineinabyss.geary.papermc.tracking.items.components.SetItemIgnoredProperties
 import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.Colorable
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
-import com.mineinabyss.idofront.serialization.BaseSerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
+import dev.triumphteam.gui.builder.item.ItemBuilder
 import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.api.OraxenItems
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
+import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -65,129 +61,79 @@ private fun ItemStack.isDyeable(): Boolean {
     }
 }
 
-@OptIn(InternalSerializationApi::class)
+val baseColorScrollingIndex: MutableMap<UUID, Int> = mutableMapOf()
+val subColorScrollingIndex: MutableMap<UUID, Int> = mutableMapOf()
+
 fun Player.createColorMenu(): Gui {
     val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
     val cachedDyeMap = dyeColorItemMap(this)
     val cachedEffectSet = effectItemList(this)
     var effectToggleState = false
 
-    // baseColor square
-    hmcColor.config.buttons.baseColorGrid.let {
-        it.first.forEachIndexed { index, int ->
-            gui.setItem(int, cachedDyeMap.keys.elementAt(index))
+    val buttons = hmcColor.config.buttons
+    val baseColorGrid = buttons.baseColorGrid
+    when (baseColorGrid.type) {
+        HMCColorConfig.BaseColorGrid.Type.NORMAL -> baseColorGrid.rows.forEachIndexed { rowIndex, row ->
+            row.forEachIndexed { index, int ->
+                gui.setItem(int, cachedDyeMap.keys.elementAt(index + 3 * rowIndex).also { item ->
+                    item.setAction { click ->
+                        effectToggleState = false
+                        val dyeMap = cachedDyeMap[item] ?: return@setAction
+                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                    }
+                })
+            }
         }
-        it.second.forEachIndexed { index, int ->
-            gui.setItem(int, cachedDyeMap.keys.elementAt(index + 3))
-        }
-        it.third.forEachIndexed { index, int ->
-            gui.setItem(int, cachedDyeMap.keys.elementAt(index + 6))
+        HMCColorConfig.BaseColorGrid.Type.SCROLLING -> {
+            val baseRow = baseColorGrid.rows.first()
+            baseColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
+            cachedDyeMap.keys.toList().zip(baseRow).forEach { (item, slot) ->
+                item.setAction { click ->
+                    effectToggleState = false
+                    val dyeMap = cachedDyeMap[item] ?: return@setAction
+                    fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                }
+                gui.setItem(slot, item)
+            }
+
+            val scrollLeft = buttons.scrollLeft ?: baseRow.first().minus(1)
+            val scrollRight = buttons.scrollRight ?: baseRow.last().plus(1)
+            gui.setItem(scrollLeft, ItemBuilder.from(buttons.scrollLeftItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
+                val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
+                cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                    item.setAction { click ->
+                        effectToggleState = false
+                        val dyeMap = cachedDyeMap[item] ?: return@setAction
+                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                    }
+                    gui.setItem(slot, item)
+                    gui.updateItem(slot, item)
+                }
+            })
+            gui.setItem(scrollRight, ItemBuilder.from(buttons.scrollRightItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
+                val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
+                cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                    item.setAction { click ->
+                        effectToggleState = false
+                        val dyeMap = cachedDyeMap[item] ?: return@setAction
+                        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
+                    }
+                    gui.setItem(slot, item)
+                    gui.updateItem(slot, item)
+                }
+            })
         }
     }
 
     // Effects toggle
-    val effectItem = if (cachedEffectSet.isNotEmpty() && hmcColor.config.enableEffectsMenu) GuiItem(
-        hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem
-    ) else null
-    effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
-
-    gui.guiItems.forEach { (_, clickedItem) ->
-        clickedItem.setAction { click ->
-            // Logic for clicking a baseColor to show all subColors
-            when {
-                click.isShiftClick -> return@setAction
-                click.isLeftClick && (clickedItem in cachedDyeMap.keys || effectItem?.let { it == clickedItem } ?: return@setAction) -> {
-                    val dyeMap: List<GuiItem> = when (clickedItem) {
-                        effectItem -> {
-                            click.isCancelled = true
-                            effectToggleState = !effectToggleState
-                            if (effectToggleState) cachedEffectSet.toList()
-                            else cachedDyeMap.values.firstOrNull() ?: return@setAction
-                        }
-
-                        else -> {
-                            effectToggleState = false
-                            cachedDyeMap[clickedItem] ?: return@setAction
-                        }
-                    }
-
-                    //Reset bottom
-                    hmcColor.config.buttons.subColorRow.forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
-                    // Find the middle of given IntRange
-                    val middleSubColor =
-                        hmcColor.config.buttons.subColorRow.first + hmcColor.config.buttons.subColorRow.count() / 2
-                    // Subtract 0.1 because we want to round down on .5
-                    val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
-                    val range = max(
-                        middleSubColor - offset,
-                        hmcColor.config.buttons.subColorRow.first
-                    )..min(middleSubColor + offset, hmcColor.config.buttons.subColorRow.last)
-                    range.forEachIndexed { index, i ->
-                        gui.updateItem(
-                            i,
-                            runCatching { // if effect is toggled, we fill based on effect list, otherwise it's a dye color
-                                dyeMap[index]
-                            }.getOrNull() ?: GuiItem(Material.AIR)
-                        )
-                        val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
-                        subColor.setAction subAction@{
-                            when {
-                                it.isShiftClick -> return@subAction
-                                (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
-                                    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)
-                                        ?.let { i -> GuiItem(i) } ?: return@subAction
-                                    val guiOutput = GuiItem(guiInput.itemStack.clone())
-
-                                    guiOutput.itemStack.editItemMeta {
-                                        val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return@subAction
-
-                                        // If player lacks permission, skip applying any color to output item
-                                        hmcColor.config.effects.values.find { e -> e.color == appliedColor }?.let { colors ->
-                                            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
-                                        }
-
-                                        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
-                                            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
-                                            if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
-                                        }
-
-                                        (this.asColorable() ?: return@subAction).color = appliedColor
-                                        /*if (guiOutput.itemStack.isGearyItem()) {
-                                            val ignores = this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.ignore ?: emptySet()
-                                            this.persistentDataContainer.encode(SetItemIgnoredProperties(ignores.plus(BaseSerializableItemStack.Properties.COLOR)))
-                                        }*/
-                                    }
-
-                                    gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
-                                    gui.updateItem(hmcColor.config.buttons.outputSlot, guiOutput)
-                                    guiOutput.setAction output@{ click ->
-                                        when {
-                                            click.isCancelled -> return@output
-                                            click.cursor.isEmpty && click.currentItem != null -> {
-                                                click.isCancelled = true
-                                                click.currentItem?.editItemMeta {
-                                                    persistentDataContainer.remove(NamespacedKey(hmcColor.plugin, "mf-gui"))
-                                                }?.let {
-                                                    if (!click.isShiftClick) click.whoClicked.setItemOnCursor(it)
-                                                    else click.whoClicked.inventory.addItem(it)
-                                                }
-
-                                                gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack.empty())
-                                                gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack.empty())
-                                                gui.update()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                else -> return@setAction
-            }
-        }
+    val effectItem = if (cachedEffectSet.isEmpty() || !hmcColor.config.enableEffectsMenu) null
+    else ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem).asGuiItem { click ->
+        click.isCancelled = true
+        effectToggleState = !effectToggleState
+        val dyeMap = if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
+        fillSubColorRow(gui, click, dyeMap, cachedDyeMap, cachedEffectSet)
     }
+    effectItem?.let { gui.setItem(hmcColor.config.buttons.effectButton, it) }
 
     gui.setDragAction { it.isCancelled = true }
     gui.setOutsideClickAction { it.isCancelled = true }
@@ -236,6 +182,81 @@ fun Player.createColorMenu(): Gui {
     }
 
     return gui
+}
+
+private fun fillSubColorRow(gui: Gui, click: InventoryClickEvent, dyeMap: List<GuiItem>, cachedDyeMap: Map<GuiItem, List<GuiItem>>, cachedEffectSet: Set<GuiItem>) {
+    val subColorRow = hmcColor.config.buttons.subColorRow.rows.first()
+    //Reset bottom
+    subColorRow.forEach { gui.updateItem(it, GuiItem(Material.AIR)) }
+    // Find the middle of given IntRange
+    val middleSubColor = subColorRow.first + subColorRow.count() / 2
+    // Subtract 0.1 because we want to round down on .5
+    val offset = (dyeMap.size / 2.0 - 0.1).roundToInt()
+    val range = max(middleSubColor - offset, subColorRow.first)..min(middleSubColor + offset, subColorRow.last)
+    range.forEachIndexed { index, i ->
+        gui.updateItem(
+            i,
+            runCatching { // if effect is toggled, we fill based on effect list, otherwise it's a dye color
+                dyeMap[index]
+            }.getOrNull() ?: GuiItem(Material.AIR)
+        )
+        val subColor = gui.getGuiItem(i) ?: return@forEachIndexed
+        subColor.setAction subAction@{
+            when {
+                it.isShiftClick -> return@subAction
+                (click.isLeftClick && (subColor in cachedDyeMap.values.flatten() || subColor in cachedEffectSet)) -> {
+                    handleSubColorClick(gui, it, subColor)
+                }
+            }
+        }
+    }
+}
+
+private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: GuiItem) {
+    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)
+        ?.let { i -> GuiItem(i) } ?: return
+    val guiOutput = GuiItem(guiInput.itemStack.clone())
+
+    guiOutput.itemStack.editItemMeta {
+        val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return
+
+        // If player lacks permission, skip applying any color to output item
+        hmcColor.config.effects.values.find { e -> e.color == appliedColor }?.let { colors ->
+            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
+        }
+
+        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
+            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
+            if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
+        }
+
+        (this.asColorable() ?: return).color = appliedColor
+        /*if (guiOutput.itemStack.isGearyItem()) {
+            val ignores = this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.ignore ?: emptySet()
+            this.persistentDataContainer.encode(SetItemIgnoredProperties(ignores.plus(BaseSerializableItemStack.Properties.COLOR)))
+        }*/
+    }
+
+    gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
+    gui.updateItem(hmcColor.config.buttons.outputSlot, guiOutput)
+    guiOutput.setAction output@{ click ->
+        when {
+            click.isCancelled -> return@output
+            click.cursor.isEmpty && click.currentItem != null -> {
+                click.isCancelled = true
+                click.currentItem?.editItemMeta {
+                    persistentDataContainer.remove(NamespacedKey(hmcColor.plugin, "mf-gui"))
+                }?.let {
+                    if (!click.isShiftClick) click.whoClicked.setItemOnCursor(it)
+                    else click.whoClicked.inventory.addItem(it)
+                }
+
+                gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack.empty())
+                gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack.empty())
+                gui.update()
+            }
+        }
+    }
 }
 
 internal val noPermissionComponent = Component.text("You do not have access to this color!", NamedTextColor.RED)
