@@ -51,7 +51,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-val buildPath = project.findProperty("oraxen_plugin_path") as? String?
+val buildPath = project.findProperty("plugin_path") as? String?
 copyJar {
     this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
     this.jarName.set("HMCColor-${pluginVersion}.jar")

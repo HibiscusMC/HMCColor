@@ -1,7 +1,10 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
-import com.mineinabyss.idofront.serialization.*
+import com.mineinabyss.idofront.serialization.ColorSerializer
+import com.mineinabyss.idofront.serialization.IntRangeSerializer
+import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
+import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.EncodeDefault
@@ -148,9 +151,9 @@ data class HMCColorConfig(
 
         @Serializable
         data class Normal(
-            @YamlComment("Whether or not to ignore the listed subcolors and instead use a gradient from the white->baseColor->black.")
-            val autoFillColorGradient: Boolean = true,
-            val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(37..39, 46..48, 55..57)
+            @YamlComment("Whether to ignore the listed subcolors and instead use a gradient from the white->baseColor->black.")
+            val autoFillColorGradient: Boolean = false,
+            val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(37..41, 46..52)
         )
 
         @Serializable

@@ -27,7 +27,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
-import java.util.UUID
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

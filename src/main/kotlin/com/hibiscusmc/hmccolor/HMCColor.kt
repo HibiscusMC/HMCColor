@@ -3,12 +3,10 @@ package com.hibiscusmc.hmccolor
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
 import dev.triumphteam.gui.guis.Gui
-import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
 val crucible by lazy { Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible }
