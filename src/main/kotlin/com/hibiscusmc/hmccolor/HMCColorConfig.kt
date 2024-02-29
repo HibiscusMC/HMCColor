@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
@@ -7,10 +9,7 @@ import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
-import kotlinx.serialization.EncodeDefault
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import net.kyori.adventure.text.Component
 import org.bukkit.Color
 import org.bukkit.Material

@@ -87,7 +87,7 @@ fun Player.createColorMenu(): Gui {
                     item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                         gui.clearOutputItem()
                     }
                 })
@@ -99,7 +99,7 @@ fun Player.createColorMenu(): Gui {
                 item.setAction {
                     effectToggleState = false
                     val dyeMap = cachedDyeMap[item] ?: return@setAction
-                    fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                    fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                     gui.clearOutputItem()
                 }
                 gui.setItem(slot, item)
@@ -114,7 +114,7 @@ fun Player.createColorMenu(): Gui {
                     item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                         gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
@@ -128,7 +128,7 @@ fun Player.createColorMenu(): Gui {
                     item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
+                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                         gui.clearOutputItem()
                     }
                     gui.setItem(slot, item)
@@ -144,8 +144,17 @@ fun Player.createColorMenu(): Gui {
     else ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem).asGuiItem { click ->
         click.isCancelled = true
         effectToggleState = !effectToggleState
-        val dyeMap = if (effectToggleState) cachedEffectSet.toList() else cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
-        fillSubColorRow(gui, this, dyeMap, cachedDyeMap, cachedEffectSet)
+        val firstDyeCache = cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
+        val effectSubRow = cachedEffectSet.toMutableList()
+        // Ensure effectSubRow is same size as firstDyeCache
+        // If less, fill start and end of list with GuiItem(AIR) to center whatever is in the effectRowSet
+        val middle = (firstDyeCache.size - effectSubRow.size) / 2
+        if (effectSubRow.size < firstDyeCache.size) List(middle) { GuiItem(Material.AIR) }.let {
+            effectSubRow.addAll(0, it)
+            effectSubRow += it
+        }
+        val dyeMap = if (effectToggleState) effectSubRow else firstDyeCache
+        fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
     }
     effectItem?.let { gui.setItem(buttons.effectButton, it) }
 
@@ -206,13 +215,14 @@ private fun fillSubColorRow(
     gui: Gui,
     player: Player,
     dyeMap: List<GuiItem>,
-    cachedDyeMap: Map<GuiItem, List<GuiItem>>,
+    cachedDyeMap: List<GuiItem>,
     cachedEffectSet: Set<GuiItem>
 ) {
     subColorScrollingIndex[player.uniqueId] = 0 // Reset if player was in before
     val subColorGrid = hmcColor.config.buttons.subColorGrid
     when (subColorGrid.type) {
         HMCColorConfig.SubColorGrid.Type.NORMAL -> {
+
             subColorGrid.normalGrid.rows.forEachIndexed { rowIndex, subColorRow ->
                 // Find the middle of given IntRange
                 val middleSubColor = subColorRow.first + subColorRow.count() / 2
@@ -224,7 +234,7 @@ private fun fillSubColorRow(
                     item.setAction subAction@{ click ->
                         when {
                             click.isShiftClick -> return@subAction
-                            (click.isLeftClick && (item in cachedDyeMap.values.flatten() || item in cachedEffectSet)) -> {
+                            (click.isLeftClick && (item in cachedDyeMap || item in cachedEffectSet)) -> {
                                 handleSubColorClick(gui, click, item)
                             }
                         }
