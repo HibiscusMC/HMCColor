@@ -203,6 +203,21 @@ private fun Gui.clearOutputItem() {
     updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
 }
 
+private fun Gui.clearSubColorRows() {
+    when (hmcColor.config.buttons.subColorGrid.type) {
+        HMCColorConfig.SubColorGrid.Type.NORMAL -> {
+            hmcColor.config.buttons.subColorGrid.normalGrid.rows.flatten().forEach {
+                this.updateItem(it, GuiItem(Material.AIR))
+            }
+        }
+        HMCColorConfig.SubColorGrid.Type.SCROLLING -> {
+            hmcColor.config.buttons.subColorGrid.scrollingGrid.row.forEach {
+                this.updateItem(it, GuiItem(Material.AIR))
+            }
+        }
+    }
+}
+
 private fun fillSubColorRow(
     gui: Gui,
     player: Player,
@@ -210,6 +225,7 @@ private fun fillSubColorRow(
     cachedDyeMap: List<GuiItem>,
     cachedEffectSet: Set<GuiItem>
 ) {
+    gui.clearSubColorRows()
     subColorScrollingIndex[player.uniqueId] = 0 // Reset if player was in before
     val subColorGrid = hmcColor.config.buttons.subColorGrid
     when (subColorGrid.type) {
