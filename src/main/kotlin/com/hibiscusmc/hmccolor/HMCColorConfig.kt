@@ -32,7 +32,7 @@ data class HMCColorConfig(
     )
     val effectItem: SerializableItemStack = SerializableItemStack(
         type = Material.LEATHER_HORSE_ARMOR,
-        displayName = "Effect Toggle".miniMsg(),
+        displayName = "Effect Toggle".miniMsg().noItalic(),
         color = "#FFFCFC".toColor(),
         customModelData = 11
     ),
@@ -65,10 +65,6 @@ data class HMCColorConfig(
         val baseColorGrid: BaseColorGrid = BaseColorGrid(),
         val subColorGrid: SubColorGrid = SubColorGrid(),
         val effectButton: Int = 40,
-        @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollLeft: Int? = null,//baseColorGrid.rows.first().firstOrNull()?.minus(1),
-        @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollRight: Int? = null,//baseColorGrid.rows.last().lastOrNull()?.plus(1) ?: 8,
-        @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollLeftItem: SerializableItemStack = scrollLeftDefault,
-        @EncodeDefault(EncodeDefault.Mode.NEVER) val scrollRightItem: SerializableItemStack = scrollRightDefault,
     )
 
     @Serializable
@@ -129,10 +125,10 @@ data class HMCColorConfig(
         @Serializable
         data class Scrolling(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
-            val left: Int = 8,
-            val right: Int = 17,
-            val leftItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll base-colors backwards".miniMsg()),
-            val rightItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll base-colors forward".miniMsg())
+            val backwardSlot: Int = row.first.minus(1),
+            val forwardSlot: Int = row.last.plus(1),
+            val backwardItem: SerializableItemStack = scrollBackwardDefault.copy(displayName = "Scroll base-colors backwards".miniMsg()),
+            val forwardItem: SerializableItemStack = scrolForwardDefault.copy(displayName = "Scroll base-colors forward".miniMsg())
         )
 
         enum class Type {
@@ -144,15 +140,15 @@ data class HMCColorConfig(
     data class SubColorGrid(
         @YamlComment("Valid types are: NORMAL, SCROLLING")
         val type: Type = Type.NORMAL,
+        @YamlComment("Whether to ignore the listed subcolors and instead use a gradient from the white->baseColor->black.")
+        val autoFillColorGradient: Boolean = true,
         val normalGrid: Normal = Normal(),
         val scrollingGrid: Scrolling = Scrolling(),
     ) {
 
         @Serializable
         data class Normal(
-            @YamlComment("Whether to ignore the listed subcolors and instead use a gradient from the white->baseColor->black.")
-            val autoFillColorGradient: Boolean = false,
-            val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(37..41, 46..52)
+            val rows: List<@Serializable(with = IntRangeSerializer::class) IntRange> = listOf(37..43, 46..52)
         )
 
         @Serializable
@@ -160,8 +156,8 @@ data class HMCColorConfig(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
             val backwardsSlot: Int = 36,
             val forwardsSlot: Int = 45,
-            val backwardsItem: SerializableItemStack = scrollLeftDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg()),
-            val forwardsItem: SerializableItemStack = scrollRightDefault.copy(displayName = "Scroll sub-colors forward".miniMsg())
+            val backwardsItem: SerializableItemStack = scrollBackwardDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg().noItalic()),
+            val forwardsItem: SerializableItemStack = scrolForwardDefault.copy(displayName = "Scroll sub-colors forward".miniMsg().noItalic())
         )
         enum class Type {
             NORMAL, SCROLLING
@@ -169,13 +165,13 @@ data class HMCColorConfig(
     }
 
     companion object {
-        private val scrollRightDefault = SerializableItemStack(
+        private val scrolForwardDefault = SerializableItemStack(
             type = Material.ARROW,
             displayName = Component.text("Next Page"),
             customModelData = 2
         )
 
-        private val scrollLeftDefault = SerializableItemStack(
+        private val scrollBackwardDefault = SerializableItemStack(
             type = Material.ARROW,
             displayName = Component.text("Previous Page"),
             customModelData = 1

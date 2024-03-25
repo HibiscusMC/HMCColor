@@ -80,6 +80,7 @@ fun Player.createColorMenu(): Gui {
 
     baseColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
     subColorScrollingIndex[uniqueId] = 0 // Reset if player was in before
+
     when (baseColorGrid.type) {
         HMCColorConfig.BaseColorGrid.Type.NORMAL -> baseColorGrid.normalGrid.rows.forEachIndexed { rowIndex, row ->
             row.forEachIndexed { index, int ->
@@ -102,13 +103,13 @@ fun Player.createColorMenu(): Gui {
                     fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                     gui.clearOutputItem()
                 }
-                gui.setItem(slot, item)
+                gui.updateItem(slot, item)
                 gui.clearOutputItem()
             }
 
-            val scrollLeft = buttons.scrollLeft ?: baseRow.first().minus(1)
-            val scrollRight = buttons.scrollRight ?: baseRow.last().plus(1)
-            gui.setItem(scrollLeft, ItemBuilder.from(buttons.scrollLeftItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
+            val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrNull() ?: defaultItem) }
+            val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
+            gui.setItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
                 cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction {
@@ -117,12 +118,10 @@ fun Player.createColorMenu(): Gui {
                         fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                         gui.clearOutputItem()
                     }
-                    gui.setItem(slot, item)
                     gui.updateItem(slot, item)
-                    gui.clearOutputItem()
                 }
             })
-            gui.setItem(scrollRight, ItemBuilder.from(buttons.scrollRightItem.toItemStackOrNull() ?: defaultItem).asGuiItem {
+            gui.setItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
                 cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction {
@@ -131,9 +130,7 @@ fun Player.createColorMenu(): Gui {
                         fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
                         gui.clearOutputItem()
                     }
-                    gui.setItem(slot, item)
                     gui.updateItem(slot, item)
-                    gui.clearOutputItem()
                 }
             })
         }
@@ -178,22 +175,17 @@ fun Player.createColorMenu(): Gui {
                 click.whoClicked.setItemOnCursor(click.inventory.getItem(hmcColor.config.buttons.inputSlot))
                 gui.updateItem(hmcColor.config.buttons.inputSlot, ItemStack(Material.AIR))
                 gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
-                gui.update()
             }
-
+            // Cancel any non input/output/effectToggle slot
             click.slot !in hmcColor.config.buttons.let { c ->
-                setOf(
-                    c.inputSlot,
-                    c.outputSlot,
-                    c.effectButton
-                )
-            } -> click.isCancelled = true // Cancel any non input/output/effectToggle slot
-            click.slot == hmcColor.config.buttons.outputSlot && click.currentItem == null -> click.isCancelled =
-                true // Cancel adding items to empty output slot
-            click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled =
-                true // Cancel everything but leftClick action
-            !click.cursor.type.isAir && !click.cursor.isDyeable() -> click.isCancelled =
-                true // Cancel adding non-dyeable or banned items
+                setOf(c.inputSlot, c.outputSlot, c.effectButton) }
+            -> click.isCancelled = true
+            // Cancel adding items to empty output slot
+            click.slot == hmcColor.config.buttons.outputSlot && click.currentItem == null -> click.isCancelled = true
+            // Cancel everything but leftClick action
+            click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled = true
+            // Cancel adding non-dyeable or banned items
+            !click.cursor.type.isAir && !click.cursor.isDyeable() -> click.isCancelled = true
         }
     }
 
@@ -222,7 +214,6 @@ private fun fillSubColorRow(
     val subColorGrid = hmcColor.config.buttons.subColorGrid
     when (subColorGrid.type) {
         HMCColorConfig.SubColorGrid.Type.NORMAL -> {
-
             subColorGrid.normalGrid.rows.forEachIndexed { rowIndex, subColorRow ->
                 // Find the middle of given IntRange
                 val middleSubColor = subColorRow.first + subColorRow.count() / 2
@@ -245,6 +236,57 @@ private fun fillSubColorRow(
         }
         HMCColorConfig.SubColorGrid.Type.SCROLLING -> {
 
+            fun GuiItem.setSubColorClickAction(click: InventoryClickEvent): Unit? {
+                return when {
+                    click.isShiftClick -> null
+                    (click.isLeftClick && (this in cachedDyeMap || this in cachedEffectSet)) ->
+                        handleSubColorClick(gui, click, this)
+
+                    else -> Unit
+                }
+            }
+
+            val scrollingGrid = hmcColor.config.buttons.subColorGrid.scrollingGrid
+            dyeMap.zip(scrollingGrid.row).forEach { (item, slot) ->
+                item.setAction { item.setSubColorClickAction(it) }
+                gui.updateItem(slot, item)
+            }
+
+            val (backwardSlot, scrollBackward) = scrollingGrid.let { it.backwardsSlot to (it.backwardsItem.toItemStackOrNull() ?: defaultItem) }
+            val (forwardSlot, scrollForward) = scrollingGrid.let { it.forwardsSlot to (it.forwardsItem.toItemStackOrNull() ?: defaultItem) }
+
+            gui.updateItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
+                val index = subColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
+                val rotatedDyeMap = dyeMap.rotatedLeft(index).zip(scrollingGrid.row).toMap()
+                rotatedDyeMap.forEach { (item, slot) ->
+                    item.setAction subAction@{
+                        val updatedClickItems = rotatedDyeMap.keys.toList()
+                        fillSubColorRow(gui, player, updatedClickItems, updatedClickItems, cachedEffectSet)
+                        item.setSubColorClickAction(it)
+                    }
+                    item.setAction { item.setSubColorClickAction(it) }
+                    gui.updateItem(slot, item)
+                }
+            })
+
+            gui.updateItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
+                val index = subColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
+                val rotatedDyeMap = dyeMap.rotatedLeft(index).zip(scrollingGrid.row).toMap()
+                rotatedDyeMap.forEach { (item, slot) ->
+                    item.setAction subAction@{ click ->
+                        val updatedClickItems = rotatedDyeMap.keys.toList()
+                        fillSubColorRow(gui, player, updatedClickItems, updatedClickItems, cachedEffectSet)
+                        when {
+                            click.isShiftClick -> return@subAction
+                            (click.isLeftClick && (item in cachedDyeMap || item in cachedEffectSet)) -> {
+                                handleSubColorClick(gui, click, item)
+                            }
+                        }
+                    }
+                    item.setAction { item.setSubColorClickAction(it) }
+                    gui.updateItem(slot, item)
+                }
+            })
         }
     }
 
@@ -275,7 +317,6 @@ private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: 
         }*/
     }
 
-    gui.setItem(hmcColor.config.buttons.outputSlot, guiOutput)
     gui.updateItem(hmcColor.config.buttons.outputSlot, guiOutput)
     guiOutput.setAction output@{ click ->
         when {
@@ -325,9 +366,12 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
             // Make the ItemStacks for all subColors
             val subColorGrid = hmcColor.config.buttons.subColorGrid
             val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
-            if (subColors.isEmpty() || (subColorGrid.type == HMCColorConfig.SubColorGrid.Type.NORMAL && subColorGrid.normalGrid.autoFillColorGradient)) {
+            if (subColors.isEmpty() || subColorGrid.autoFillColorGradient) {
                 val centerColor = "#" + baseColor.color.asARGB().toHexString(ColorHelpers.hexFormat).substring(2)
-                val count = subColorGrid.normalGrid.rows.flatten().count() + 14
+                val count = when (subColorGrid.type) {
+                    HMCColorConfig.SubColorGrid.Type.NORMAL -> subColorGrid.normalGrid.rows.flatten()
+                    HMCColorConfig.SubColorGrid.Type.SCROLLING -> subColorGrid.scrollingGrid.row
+                }.count() + 14
                 val gradientComponent = ("<gradient:white:$centerColor:black>" + "X".repeat(count)).miniMsg()
 
                 gradientComponent.children().mapNotNull { it.color()?.takeUnless { c -> c.isCloseToWhite || c.isCloseToBlack } }.forEach {
