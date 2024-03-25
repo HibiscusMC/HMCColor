@@ -21,12 +21,12 @@ import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
-import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
+import java.awt.Color
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -367,22 +367,24 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
             val subColorGrid = hmcColor.config.buttons.subColorGrid
             val subItem = hmcColor.config.buttons.subColorGrid.subColorItem?.toItemStackOrNull((defaultItem)) ?: defaultItem
             if (subColors.isEmpty() || subColorGrid.autoFillColorGradient) {
-                val centerColor = "#" + baseColor.color.asARGB().toHexString(ColorHelpers.hexFormat).substring(2)
                 val count = when (subColorGrid.type) {
-                    HMCColorConfig.SubColorGrid.Type.NORMAL -> subColorGrid.normalGrid.rows.flatten()
-                    HMCColorConfig.SubColorGrid.Type.SCROLLING -> subColorGrid.scrollingGrid.row
-                }.count() + 14
-                val gradientComponent = ("<gradient:white:$centerColor:black>" + "X".repeat(count)).miniMsg()
+                    HMCColorConfig.SubColorGrid.Type.NORMAL -> subColorGrid.normalGrid.rows.flatten().count() * 2
+                    HMCColorConfig.SubColorGrid.Type.SCROLLING -> subColorGrid.scrollingGrid.row.let { it.last - it.first } * 2
+                }
+                val hueGradient = createGradientWithHueShift(Color(baseColor.color.asRGB()), count)
 
-                gradientComponent.children().mapNotNull { it.color()?.takeUnless { c -> c.isCloseToWhite || c.isCloseToBlack } }.forEach {
+                hueGradient.forEach { color: Color ->
+                    val (red, green) = color.red.coerceIn(0, 255) to color.green.coerceIn(0, 255)
+                    val blue =  color.blue.coerceIn(0, 255)
                     subItem.clone().editItemMeta {
                         displayName(Component.empty())
                         if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                        this.asColorable()?.color = Color.fromRGB(it.value())
+                        this.asColorable()?.color = org.bukkit.Color.fromRGB(red, green, blue)
                     }.let {
                         list += GuiItem(it)
                     }
                 }
+
             } else {
                 subColors.forEach subColor@{ subColor ->
                     subItem.editItemMeta {
@@ -400,6 +402,40 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
         }
     }
 }
+
+private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): Array<Color> {
+    val gradients = Array(numSteps) { Color(0, 0, 0) }
+
+    // Convert primary color to HSB
+    val hsb = Color.RGBtoHSB(primaryColor.red, primaryColor.green, primaryColor.blue, null)
+    val hue = hsb[0]
+    val saturation = hsb[1]
+    val brightness = hsb[2]
+
+    // Determine extreme "light" and "dark" colors based on brightness
+    val lightColor = Color.getHSBColor(hue, saturation, Math.min(brightness * 1.5f, 1.0f))
+    val darkColor = Color.getHSBColor(hue, saturation, Math.max(brightness * 0.5f, 0.0f))
+
+    // Calculate color difference between light and dark colors
+    val lightHSB = Color.RGBtoHSB(lightColor.red, lightColor.green, lightColor.blue, null)
+    val darkHSB = Color.RGBtoHSB(darkColor.red, darkColor.green, darkColor.blue, null)
+
+    val hueDiff = (lightHSB[0] - darkHSB[0]) / numSteps
+    val saturationDiff = (lightHSB[1] - darkHSB[1]) / numSteps
+    val brightnessDiff = (lightHSB[2] - darkHSB[2]) / numSteps
+
+    // Generate gradient colors
+    for (step in 0 until numSteps) {
+        val newHue = lightHSB[0] - hueDiff * step
+        val newSaturation = lightHSB[1] - saturationDiff * step
+        val newBrightness = lightHSB[2] - brightnessDiff * step
+
+        gradients[step] = Color.getHSBColor(newHue, newSaturation, newBrightness)
+    }
+
+    return gradients
+}
+
 
 private val TextColor.isCloseToWhite
     get() = red() > 200 && green() > 200 && blue() > 200
