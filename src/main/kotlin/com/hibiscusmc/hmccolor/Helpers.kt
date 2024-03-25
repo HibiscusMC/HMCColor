@@ -354,7 +354,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
     return mutableMapOf<GuiItem, MutableList<GuiItem>>().apply {
         hmcColor.config.colors.values.forEach baseColor@{ colors ->
             val list = mutableListOf<GuiItem>()
-            val baseItem = defaultItem
+            val baseItem = hmcColor.config.buttons.baseColorGrid.baseColorItem?.toItemStackOrNull((defaultItem)) ?: defaultItem
             val (baseColor, subColors) = colors
 
             baseItem.editItemMeta {
@@ -365,7 +365,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
             // Make the ItemStacks for all subColors
             val subColorGrid = hmcColor.config.buttons.subColorGrid
-            val subItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: defaultItem
+            val subItem = hmcColor.config.buttons.subColorGrid.subColorItem?.toItemStackOrNull((defaultItem)) ?: defaultItem
             if (subColors.isEmpty() || subColorGrid.autoFillColorGradient) {
                 val centerColor = "#" + baseColor.color.asARGB().toHexString(ColorHelpers.hexFormat).substring(2)
                 val count = when (subColorGrid.type) {

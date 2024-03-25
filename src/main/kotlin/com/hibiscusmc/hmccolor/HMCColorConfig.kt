@@ -111,6 +111,8 @@ data class HMCColorConfig(
         val type: Type = Type.NORMAL,
         val normalGrid: Normal = Normal(),
         val scrollingGrid: Scrolling = Scrolling(),
+        @YamlComment("baseColorItem can be specified, null defaults to Buttons.item")
+        val baseColorItem: SerializableItemStack? = null
     ) {
 
         @Serializable
@@ -144,6 +146,8 @@ data class HMCColorConfig(
         val autoFillColorGradient: Boolean = true,
         val normalGrid: Normal = Normal(),
         val scrollingGrid: Scrolling = Scrolling(),
+        @YamlComment("subColorItem can be specified, null defaults to Buttons.item")
+        val subColorItem: SerializableItemStack? = null
     ) {
 
         @Serializable
