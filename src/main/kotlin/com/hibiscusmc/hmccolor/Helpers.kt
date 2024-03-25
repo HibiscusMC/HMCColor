@@ -95,8 +95,9 @@ fun Player.createColorMenu(): Gui {
             }
         }
         HMCColorConfig.BaseColorGrid.Type.SCROLLING -> {
+            val cachedDyeKeys = cachedDyeMap.keys.toList()
             val baseRow = baseColorGrid.scrollingGrid.row
-            cachedDyeMap.keys.toList().zip(baseRow).forEach { (item, slot) ->
+            cachedDyeKeys.zip(baseRow).forEach { (item, slot) ->
                 item.setAction {
                     effectToggleState = false
                     val dyeMap = cachedDyeMap[item] ?: return@setAction
@@ -111,7 +112,7 @@ fun Player.createColorMenu(): Gui {
             val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
             gui.setItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
-                cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
@@ -123,7 +124,7 @@ fun Player.createColorMenu(): Gui {
             })
             gui.setItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
-                cachedDyeMap.keys.toList().rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction {
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
@@ -412,7 +413,6 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                     list += GuiItem(subItem)
                 }
             }
-            if (this.size >= 9) return@baseColor // only show the first 9 baseColors
 
             this[GuiItem(baseItem)] = list
         }
