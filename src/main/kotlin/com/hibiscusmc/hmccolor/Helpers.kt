@@ -97,23 +97,16 @@ fun Player.createColorMenu(): Gui {
         HMCColorConfig.BaseColorGrid.Type.SCROLLING -> {
             val cachedDyeKeys = cachedDyeMap.keys.toList()
             val baseRow = baseColorGrid.scrollingGrid.row
-            cachedDyeKeys.zip(baseRow).forEach { (item, slot) ->
-                item.setAction {
-                    effectToggleState = false
-                    val dyeMap = cachedDyeMap[item] ?: return@setAction
-                    fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
-                    gui.clearOutputItem()
-                }
-                gui.updateItem(slot, item)
-                gui.clearOutputItem()
-            }
+            val baseRowIndices = baseRow.toList()
+            val baseRowCenterSlot = baseRow.last - ((baseRowIndices.size - 1) / 2)
 
-            val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrNull() ?: defaultItem) }
-            val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
-            gui.setItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
-                val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
-                cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+            fun centerClickedBaseColor(clickedItem: GuiItem, clickedSlot: Int) {
+                val centerOffset = clickedSlot - baseRowCenterSlot
+                val newIndex = (baseColorScrollingIndex[uniqueId] ?: 0) + centerOffset
+                baseColorScrollingIndex[uniqueId] = newIndex
+                cachedDyeKeys.rotatedLeft(newIndex).zip(baseRow).forEach {(item, slot) ->
                     item.setAction {
+                        centerClickedBaseColor(clickedItem, slot)
                         effectToggleState = false
                         val dyeMap = cachedDyeMap[item] ?: return@setAction
                         fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
@@ -121,16 +114,35 @@ fun Player.createColorMenu(): Gui {
                     }
                     gui.updateItem(slot, item)
                 }
+            }
+
+            fun selectBaseColor(item: GuiItem, slot: Int) {
+                centerClickedBaseColor(item, slot)
+                effectToggleState = false
+                val dyeMap = cachedDyeMap[item] ?: return
+                fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
+                gui.clearOutputItem()
+            }
+
+            // Initial setup of base color row
+            cachedDyeKeys.zip(baseRow).forEach { (item, slot) ->
+                item.setAction { selectBaseColor(item, slot) }
+                gui.updateItem(slot, item)
+            }
+
+            val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrNull() ?: defaultItem) }
+            val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
+            gui.setItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
+                val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
+                cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                    item.setAction { selectBaseColor(item, slot) }
+                    gui.updateItem(slot, item)
+                }
             })
             gui.setItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
                 cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
-                    item.setAction {
-                        effectToggleState = false
-                        val dyeMap = cachedDyeMap[item] ?: return@setAction
-                        fillSubColorRow(gui, this, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
-                        gui.clearOutputItem()
-                    }
+                    item.setAction { selectBaseColor(item, slot) }
                     gui.updateItem(slot, item)
                 }
             })
