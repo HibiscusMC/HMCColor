@@ -132,19 +132,23 @@ fun Player.createColorMenu(): Gui {
 
             val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrNull() ?: defaultItem) }
             val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
-            gui.setItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
+            gui.updateItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
                 cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction { selectBaseColor(item, slot) }
                     gui.updateItem(slot, item)
                 }
+                val centerBaseColor = gui.getGuiItem(baseRowCenterSlot) ?: return@asGuiItem
+                selectBaseColor(centerBaseColor, baseRowCenterSlot)
             })
-            gui.setItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
+            gui.updateItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
                 cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
                     item.setAction { selectBaseColor(item, slot) }
                     gui.updateItem(slot, item)
                 }
+                val centerBaseColor = gui.getGuiItem(baseRowCenterSlot) ?: return@asGuiItem
+                selectBaseColor(centerBaseColor, baseRowCenterSlot)
             })
         }
     }
@@ -276,8 +280,28 @@ private fun fillSubColorRow(
             }
 
             val scrollingGrid = hmcColor.config.buttons.subColorGrid.scrollingGrid
+            val subRow = scrollingGrid.row.toList()
+            val subRowCenterSlot = scrollingGrid.row.last - ((subRow.size - 1) / 2)
+
+            fun centerClickedSubColor(clickedItem: GuiItem, clickedSlot: Int) {
+                val centerOffset = clickedSlot - subRowCenterSlot
+                val newIndex = (subColorScrollingIndex[player.uniqueId] ?: 0) + centerOffset
+                subColorScrollingIndex[player.uniqueId] = newIndex
+                dyeMap.rotatedLeft(newIndex).zip(scrollingGrid.row).forEach { (item, slot) ->
+                    item.setAction {
+                        centerClickedSubColor(clickedItem, slot)
+                        item.setSubColorClickAction(it)
+                    }
+                    gui.updateItem(slot, item)
+                }
+            }
+
+            // Initial setup for sub color row
             dyeMap.zip(scrollingGrid.row).forEach { (item, slot) ->
-                item.setAction { item.setSubColorClickAction(it) }
+                item.setAction {
+                    centerClickedSubColor(item, slot)
+                    item.setSubColorClickAction(it)
+                }
                 gui.updateItem(slot, item)
             }
 
@@ -291,9 +315,13 @@ private fun fillSubColorRow(
                     item.setAction subAction@{
                         val updatedClickItems = rotatedDyeMap.keys.toList()
                         fillSubColorRow(gui, player, updatedClickItems, updatedClickItems, cachedEffectSet)
+                        centerClickedSubColor(item, slot)
                         item.setSubColorClickAction(it)
                     }
-                    item.setAction { item.setSubColorClickAction(it) }
+                    item.setAction {
+                        centerClickedSubColor(item, slot)
+                        item.setSubColorClickAction(it)
+                    }
                     gui.updateItem(slot, item)
                 }
             })
