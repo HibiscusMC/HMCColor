@@ -335,8 +335,9 @@ private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: 
         }
 
         cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
-            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
-            if (!click.whoClicked.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
+            val player = click.whoClicked as? Player ?: return@let
+            if (!colors.canUse(player)) return@editItemMeta
+            if (!player.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
         }
 
         (this.asColorable() ?: return).color = appliedColor
