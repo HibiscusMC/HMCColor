@@ -198,7 +198,7 @@ fun Player.createColorMenu(): Gui {
                 setOf(c.inputSlot, c.outputSlot, c.effectButton) }
             -> click.isCancelled = true
             // Cancel adding items to empty output slot
-            click.slot == hmcColor.config.buttons.outputSlot && click.currentItem == null -> click.isCancelled = true
+            click.slot == hmcColor.config.buttons.outputSlot && (click.currentItem == null || !click.cursor.type.isAir) -> click.isCancelled = true
             // Cancel everything but leftClick action
             click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled = true
             // Cancel adding non-dyeable or banned items
