@@ -94,10 +94,10 @@ data class HMCColorConfig(
         @EncodeDefault(EncodeDefault.Mode.NEVER) val permission: String? = null
     ) {
         @Transient
-        val allColors = setOf(baseColor.color) + subColors.map(SubColor::color).toSet()
+        val allColors = setOf(baseColor.color).plus(subColors.map { it.color })
         fun canUse(player: Player, subColor: SubColor? = null) =
-            permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true &&
-                    subColor?.permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true
+            (permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true) &&
+                    (subColor?.permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true)
 
         @Serializable
         data class BaseColor(val name: String, val color: @Serializable(ColorSerializer::class) Color)

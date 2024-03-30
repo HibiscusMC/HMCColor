@@ -8,9 +8,9 @@ import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.Colorable
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
+import com.mineinabyss.idofront.messaging.broadcast
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.idofront.util.ColorHelpers
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.builder.item.ItemBuilder
 import dev.triumphteam.gui.components.GuiType
@@ -350,30 +350,24 @@ private fun fillSubColorRow(
 }
 
 private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: GuiItem) {
-    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)
-        ?.let { i -> GuiItem(i) } ?: return
-    val guiOutput = GuiItem(guiInput.itemStack.clone())
+    val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
+    val guiOutput = GuiItem(
+        guiInput.itemStack.clone().editItemMeta {
+            val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return@editItemMeta
+            // If player lacks permission, skip applying any color to output item
+            hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
+                if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
+            }
 
-    guiOutput.itemStack.editItemMeta {
-        val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return
+            cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
+                val player = click.whoClicked as? Player ?: return@let
+                if (!colors.canUse(player)) return@editItemMeta
+                if (!player.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
+            }
 
-        // If player lacks permission, skip applying any color to output item
-        hmcColor.config.effects.values.find { e -> e.color == appliedColor }?.let { colors ->
-            if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
+            (this.asColorable() ?: return).color = appliedColor
         }
-
-        cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
-            val player = click.whoClicked as? Player ?: return@let
-            if (!colors.canUse(player)) return@editItemMeta
-            if (!player.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
-        }
-
-        (this.asColorable() ?: return).color = appliedColor
-        /*if (guiOutput.itemStack.isGearyItem()) {
-            val ignores = this.persistentDataContainer.decode<SetItemIgnoredProperties>()?.ignore ?: emptySet()
-            this.persistentDataContainer.encode(SetItemIgnoredProperties(ignores.plus(BaseSerializableItemStack.Properties.COLOR)))
-        }*/
-    }
+    )
 
     gui.updateItem(hmcColor.config.buttons.outputSlot, guiOutput)
     guiOutput.setAction output@{ click ->
@@ -431,16 +425,17 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                 }
                 val hueGradient = createGradientWithHueShift(Color(baseColor.color.asRGB()), count)
 
-                hueGradient.forEach { color: Color ->
-                    val (red, green) = color.red.coerceIn(0, 255) to color.green.coerceIn(0, 255)
-                    val blue =  color.blue.coerceIn(0, 255)
+                hueGradient.forEach { color: org.bukkit.Color ->
                     subItem.clone().editItemMeta {
                         displayName(Component.empty())
                         if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
-                        this.asColorable()?.color = org.bukkit.Color.fromRGB(red, green, blue)
+                        this.asColorable()?.color = color
                     }.let {
                         list += GuiItem(it)
                     }
+                }
+                cachedColors.compute(colors) { _, allColors ->
+                    (allColors ?: setOf()).plus(hueGradient)
                 }
 
             } else {
@@ -460,7 +455,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
     }
 }
 
-private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): Array<Color> {
+private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): List<org.bukkit.Color> {
     val gradients = Array(numSteps) { Color(0, 0, 0) }
 
     // Convert primary color to HSB
@@ -490,7 +485,7 @@ private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): Arra
         gradients[step] = Color.getHSBColor(newHue, newSaturation, newBrightness)
     }
 
-    return gradients
+    return gradients.map { org.bukkit.Color.fromRGB(it.red.coerceIn(0, 255), it.green.coerceIn(0, 255), it.blue.coerceIn(0, 255)) }
 }
 
 
