@@ -391,13 +391,11 @@ private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColorIt
     }
 }
 
-internal val noPermissionComponent = Component.text("You do not have access to this color!", NamedTextColor.RED)
-
 fun effectItemList(player: Player) : MutableSet<GuiItem> {
     return hmcColor.config.effects.values.map effectColor@{ effect ->
         GuiItem(defaultItem.editItemMeta {
             displayName(effect.name.miniMsg())
-            if (!effect.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+            if (!effect.canUse(player)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
             this.asColorable()?.color = effect.color
         })
     }.toMutableSet()
@@ -412,7 +410,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
-                if (!baseColor.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                if (!baseColor.canUse(player)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                 this.asColorable()?.color = baseColor.color
             }
 
@@ -429,7 +427,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                 hueGradient.forEach { color: org.bukkit.Color ->
                     subItem.clone().editItemMeta {
                         displayName(Component.empty())
-                        if (!baseColor.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        if (!baseColor.canUse(player)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                         this.asColorable()?.color = color
                     }.let {
                         list += GuiItem(it)
@@ -443,7 +441,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                 subColors.forEach subColor@{ subColor ->
                     subItem.clone().editItemMeta {
                         displayName(subColor.name.miniMsg())
-                        if (!subColor.canUse(player, baseColor)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        if (!subColor.canUse(player, baseColor)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                         this.asColorable()?.color = subColor.color
                     }.let {
                         list += GuiItem(it)

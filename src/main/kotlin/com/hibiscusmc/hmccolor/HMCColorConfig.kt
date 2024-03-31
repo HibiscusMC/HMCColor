@@ -45,8 +45,11 @@ data class HMCColorConfig(
         )
     ),
     val colorPermission: String = "hmccolor.dye",
+    private val noPermissionMessage: String = "<red>You do not have access to this color!",
     val colors: Map<String, Colors> = defaultColors
 ) {
+
+    @Transient val noPermissionComponent = noPermissionMessage.miniMsg()
 
     @Serializable
     data class Buttons(
