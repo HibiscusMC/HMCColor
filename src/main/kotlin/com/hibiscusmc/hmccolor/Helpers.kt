@@ -8,7 +8,8 @@ import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.Colorable
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
-import com.mineinabyss.idofront.messaging.broadcast
+import com.mineinabyss.idofront.messaging.logError
+import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
@@ -349,20 +350,20 @@ private fun fillSubColorRow(
 
 }
 
-private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColor: GuiItem) {
+private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColorItem: GuiItem) {
     val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
     val guiOutput = GuiItem(
         guiInput.itemStack.clone().editItemMeta {
-            val appliedColor = (subColor.itemStack.itemMeta?.asColorable())?.color ?: return@editItemMeta
+            val appliedColor = (subColorItem.itemStack.itemMeta?.asColorable())?.color ?: return@editItemMeta
             // If player lacks permission, skip applying any color to output item
             hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
                 if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
             }
 
-            cachedColors.entries.firstOrNull { c -> appliedColor in c.value }?.key?.let { colors ->
+            hmcColor.config.colors.values.map { it.subColors }.flatten().find { it.color == appliedColor }?.let { subColor ->
                 val player = click.whoClicked as? Player ?: return@let
-                if (!colors.canUse(player)) return@editItemMeta
-                if (!player.hasPermission(hmcColor.config.colorPermission)) return@editItemMeta
+                val baseColor = hmcColor.config.colors.values.find { subColor in it.subColors }?.baseColor ?: return@editItemMeta
+                if (!subColor.canUse(player, baseColor)) return@editItemMeta
             }
 
             (this.asColorable() ?: return).color = appliedColor
@@ -411,7 +412,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
             baseItem.editItemMeta {
                 displayName(baseColor.name.miniMsg())
-                if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                if (!baseColor.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                 this.asColorable()?.color = baseColor.color
             }
 
@@ -428,7 +429,7 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
                 hueGradient.forEach { color: org.bukkit.Color ->
                     subItem.clone().editItemMeta {
                         displayName(Component.empty())
-                        if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        if (!baseColor.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                         this.asColorable()?.color = color
                     }.let {
                         list += GuiItem(it)
@@ -440,13 +441,13 @@ fun dyeColorItemMap(player: Player): MutableMap<GuiItem, MutableList<GuiItem>> {
 
             } else {
                 subColors.forEach subColor@{ subColor ->
-                    subItem.editItemMeta {
+                    subItem.clone().editItemMeta {
                         displayName(subColor.name.miniMsg())
-                        if (!colors.canUse(player)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
+                        if (!subColor.canUse(player, baseColor)) lore()?.add(noPermissionComponent) ?: lore(listOf(noPermissionComponent))
                         this.asColorable()?.color = subColor.color
+                    }.let {
+                        list += GuiItem(it)
                     }
-
-                    list += GuiItem(subItem)
                 }
             }
 

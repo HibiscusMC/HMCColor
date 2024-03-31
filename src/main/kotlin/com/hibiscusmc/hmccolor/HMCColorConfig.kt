@@ -3,6 +3,7 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
+import com.mineinabyss.idofront.messaging.broadcastVal
 import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
@@ -91,19 +92,23 @@ data class HMCColorConfig(
     data class Colors(
         val baseColor: BaseColor,
         val subColors: Set<SubColor>,
-        @EncodeDefault(EncodeDefault.Mode.NEVER) val permission: String? = null
     ) {
         @Transient
         val allColors = setOf(baseColor.color).plus(subColors.map { it.color })
-        fun canUse(player: Player, subColor: SubColor? = null) =
-            (permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true) &&
-                    (subColor?.permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true)
 
         @Serializable
-        data class BaseColor(val name: String, val color: @Serializable(ColorSerializer::class) Color)
+        data class BaseColor(val name: String, val color: @Serializable(ColorSerializer::class) Color, @EncodeDefault(EncodeDefault.Mode.NEVER) val permission: String? = null) {
+            fun canUse(player: Player): Boolean {
+                return permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true
+            }
+        }
 
         @Serializable
-        data class SubColor(val name: String, val color: @Serializable(ColorSerializer::class) Color, @EncodeDefault(EncodeDefault.Mode.NEVER) val permission: String? = null)
+        data class SubColor(val name: String, val color: @Serializable(ColorSerializer::class) Color, @EncodeDefault(EncodeDefault.Mode.NEVER) val permission: String? = null) {
+            fun canUse(player: Player, baseColor: BaseColor): Boolean {
+                return baseColor.canUse(player) && (permission.takeUnless { it.isNullOrEmpty() }?.let { player.hasPermission(it) } ?: true)
+            }
+        }
     }
 
     @Serializable
