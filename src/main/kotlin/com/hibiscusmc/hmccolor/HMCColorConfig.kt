@@ -19,6 +19,12 @@ import org.bukkit.permissions.Permission
 
 @Serializable
 data class HMCColorConfig(
+    @YamlComment(
+        "FOR HMCCOSMETICS USERS:",
+        "Vanilla RP Title: <white>\uE001\uE002",
+        "Oraxen Configuration Title: <white><s:-8><g:dye_menu>",
+        "ItemsAdder Configuration Title: '<white>:img_offset_-8::img_dye_menu:'"
+    )
     val title: String = "<gradient:#aa3159:#8c0c0c>HMCColor",
     val rows: Int = 6,
     val buttons: Buttons = Buttons(),
@@ -64,11 +70,11 @@ data class HMCColorConfig(
             type = Material.LEATHER_HORSE_ARMOR,
             customModelData = 1
         ),
-        val inputSlot: Int = 19,
-        val outputSlot: Int = 25,
+        val inputSlot: Int = 10,
+        val outputSlot: Int = 16,
         val baseColorGrid: BaseColorGrid = BaseColorGrid(),
         val subColorGrid: SubColorGrid = SubColorGrid(),
-        val effectButton: Int = 40,
+        val effectButton: Int = 54,
     )
 
     @Serializable
@@ -126,9 +132,9 @@ data class HMCColorConfig(
 
         @Serializable
         data class Normal(
-            val first: @Serializable(with = IntRangeSerializer::class) IntRange = 12..14,
-            val second: @Serializable(with = IntRangeSerializer::class) IntRange = 21..23,
-            val third: @Serializable(with = IntRangeSerializer::class) IntRange = 30..32
+            val first: @Serializable(with = IntRangeSerializer::class) IntRange = 3..5,
+            val second: @Serializable(with = IntRangeSerializer::class) IntRange = 12..14,
+            val third: @Serializable(with = IntRangeSerializer::class) IntRange = 23..23
         ) {
             val rows get() = listOf(first, second, third)
         }
