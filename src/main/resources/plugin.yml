@@ -4,15 +4,3 @@ main: com.hibiscusmc.hmccolor.HMCColor
 api-version: 1.18
 softdepend: [ Oraxen, ItemsAdder, MythicCrucible, Geary ]
 authors: [ boy0000 ]
-
-commands:
-  hmccolor:
-    reload:
-      permission: hmccolor.reload
-      description: Reload the plugin
-      usage: /hmccolor reload
-    dye:
-      aliases: [ color ]
-      permission: hmccolor.dye
-      description: Dye the item in your hand
-      usage: /hmccolor dye

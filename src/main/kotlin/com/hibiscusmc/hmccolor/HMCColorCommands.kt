@@ -9,6 +9,7 @@ import org.bukkit.command.TabCompleter
 
 class HMCColorCommands : IdofrontCommandExecutor(), TabCompleter {
 
+    @OptIn(ExperimentalStdlibApi::class)
     override val commands = commands(hmcColor.plugin) {
         "hmccolor" {
             "dye" {
