@@ -487,12 +487,5 @@ private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): List
     return gradients.map { org.bukkit.Color.fromRGB(it.red.coerceIn(0, 255), it.green.coerceIn(0, 255), it.blue.coerceIn(0, 255)) }
 }
 
-
-private val TextColor.isCloseToWhite
-    get() = red() > 200 && green() > 200 && blue() > 200
-
-private val TextColor.isCloseToBlack
-    get() = red() < 50 && green() < 50 && blue() < 50
-
 private val defaultItem
     get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
