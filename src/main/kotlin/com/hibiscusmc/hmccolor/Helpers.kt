@@ -5,11 +5,8 @@ package com.hibiscusmc.hmccolor
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
 import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
-import com.mineinabyss.idofront.items.Colorable
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
-import com.mineinabyss.idofront.messaging.logError
-import com.mineinabyss.idofront.messaging.logWarn
 import com.mineinabyss.idofront.plugin.Plugins
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
@@ -20,8 +17,6 @@ import dev.triumphteam.gui.guis.GuiItem
 import io.lumine.mythiccrucible.MythicCrucible
 import io.th0rgal.oraxen.api.OraxenItems
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
@@ -58,7 +53,7 @@ fun String.gearyItem() = if (Plugins.isEnabled("Geary")) PrefabKey.ofOrNull(this
 private fun ItemStack.isDyeable(): Boolean {
     val blacklist = hmcColor.config.blacklistedItems
     return when {
-        (itemMeta as? Colorable) != null -> false
+        itemMeta.asColorable() == null -> false
         this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
         this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
         this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
@@ -178,7 +173,7 @@ fun Player.createColorMenu(): Gui {
     gui.setPlayerInventoryAction { click ->
         if (click.isShiftClick) {
             val inputStack = gui.getGuiItem(hmcColor.config.buttons.inputSlot)?.itemStack
-            if (inputStack?.isEmpty != false && click.currentItem?.isDyeable() == true) {
+            if (inputStack?.type?.isAir != false && click.currentItem?.isDyeable() == true) {
                 click.isCancelled = true
                 gui.updateItem(hmcColor.config.buttons.inputSlot, GuiItem(click.currentItem!!))
                 gui.update()
@@ -203,7 +198,10 @@ fun Player.createColorMenu(): Gui {
             // Cancel everything but leftClick action
             click.slot != hmcColor.config.buttons.outputSlot && click.isShiftClick -> click.isCancelled = true
             // Cancel adding non-dyeable or banned items
-            !click.cursor.type.isAir && !click.cursor.isDyeable() -> click.isCancelled = true
+            !click.cursor.type.isAir -> when {
+                !click.cursor.isDyeable() -> click.isCancelled = true
+                click.cursor.type != click.currentItem?.type -> gui.clearOutputItem()
+            }
         }
     }
 
