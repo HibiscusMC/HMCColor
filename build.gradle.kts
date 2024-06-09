@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
 import kotlin.io.path.absolutePathString
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.7"
     id ("org.jetbrains.kotlin.jvm") version "1.9.20"
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.mia.copyjar)
@@ -27,13 +27,13 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-    compileOnly("io.th0rgal:oraxen:1.167.0")
+    compileOnly("io.th0rgal:oraxen:1.175.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.mineinabyss:geary-papermc:0.29.11")
 
-    implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
+    implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.kaml)
