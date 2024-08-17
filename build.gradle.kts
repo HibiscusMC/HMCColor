@@ -1,12 +1,8 @@
-import io.papermc.paperweight.util.path
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
-import kotlin.io.path.absolutePathString
-
 plugins {
     id("io.github.goooler.shadow") version "8.1.7"
-    id ("org.jetbrains.kotlin.jvm") version "1.9.20"
-    alias(libs.plugins.kotlinx.serialization)
-    alias(libs.plugins.mia.copyjar)
+    id ("org.jetbrains.kotlin.jvm") version "2.0.0"
+    alias(idofrontLibs.plugins.kotlinx.serialization)
+    alias(idofrontLibs.plugins.mia.copyjar)
 }
 
 val pluginVersion: String by project
@@ -17,7 +13,7 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://mvn.lumine.io/repository/maven-public/")
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
     maven("https://jitpack.io")
     maven("https://repo.oraxen.com/releases")
     maven("https://repo.mineinabyss.com/releases")
@@ -26,34 +22,34 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-    compileOnly("io.th0rgal:oraxen:1.175.0")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("io.th0rgal:oraxen:1.180.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
-    compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
-    compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.mineinabyss:geary-papermc:0.29.11")
+    compileOnly("io.lumine:Mythic-Dist:5.7.1")
+    compileOnly("io.lumine:MythicCrucible:2.0.0")
+    compileOnly("com.mineinabyss:geary-papermc:0.30.12")
 
     implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
-    implementation(libs.kotlin.stdlib)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.kaml)
+    implementation(idofrontLibs.kotlin.stdlib)
+    implementation(idofrontLibs.kotlinx.serialization.json)
+    implementation(idofrontLibs.kotlinx.serialization.kaml)
 
-    implementation(libs.idofront.di)
-    implementation(libs.idofront.commands)
-    implementation(libs.idofront.config)
-    implementation(libs.idofront.text.components)
-    implementation(libs.idofront.logging)
-    implementation(libs.idofront.serializers)
-    implementation(libs.idofront.util)
+    implementation(idofrontLibs.idofront.di)
+    implementation(idofrontLibs.idofront.commands)
+    implementation(idofrontLibs.idofront.config)
+    implementation(idofrontLibs.idofront.text.components)
+    implementation(idofrontLibs.idofront.logging)
+    implementation(idofrontLibs.idofront.serializers)
+    implementation(idofrontLibs.idofront.util)
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 val buildPath = project.findProperty("oraxen_plugin_path") as? String?
 copyJar {
-    this.destPath.set(buildPath ?: project.libsDirectory.path.absolutePathString())
+    this.destPath.set(buildPath ?: project.path)
     this.jarName.set("HMCColor-${pluginVersion}.jar")
     this.excludePlatformDependencies.set(false)
 }
