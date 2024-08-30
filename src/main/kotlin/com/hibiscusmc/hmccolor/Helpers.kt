@@ -8,6 +8,7 @@ import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.plugin.Plugins
+import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.lone.itemsadder.api.CustomStack
 import dev.triumphteam.gui.builder.item.ItemBuilder
@@ -126,8 +127,8 @@ fun Player.createColorMenu(): Gui {
                 gui.updateItem(slot, item)
             }
 
-            val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrNull() ?: defaultItem) }
-            val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrNull() ?: defaultItem) }
+            val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrDefaultItem()) }
+            val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrDefaultItem()) }
             gui.updateItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
                 val index = baseColorScrollingIndex.compute(uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
                 cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
@@ -151,7 +152,7 @@ fun Player.createColorMenu(): Gui {
 
     // Effects toggle
     val effectItem = if (cachedEffectSet.isEmpty() || !hmcColor.config.enableEffectsMenu) null
-    else ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrNull() ?: defaultItem).asGuiItem { click ->
+    else ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrDefaultItem()).asGuiItem { click ->
         click.isCancelled = true
         effectToggleState = !effectToggleState
         val firstDyeCache = cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
@@ -304,8 +305,8 @@ private fun fillSubColorRow(
                 gui.updateItem(slot, item)
             }
 
-            val (backwardSlot, scrollBackward) = scrollingGrid.let { it.backwardsSlot to (it.backwardsItem.toItemStackOrNull() ?: defaultItem) }
-            val (forwardSlot, scrollForward) = scrollingGrid.let { it.forwardsSlot to (it.forwardsItem.toItemStackOrNull() ?: defaultItem) }
+            val (backwardSlot, scrollBackward) = scrollingGrid.let { it.backwardsSlot to (it.backwardsItem.toItemStackOrDefaultItem()) }
+            val (forwardSlot, scrollForward) = scrollingGrid.let { it.forwardsSlot to (it.forwardsItem.toItemStackOrDefaultItem()) }
 
             gui.updateItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
                 val index = subColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
@@ -485,5 +486,5 @@ private fun createGradientWithHueShift(primaryColor: Color, numSteps: Int): List
     return gradients.map { org.bukkit.Color.fromRGB(it.red.coerceIn(0, 255), it.green.coerceIn(0, 255), it.blue.coerceIn(0, 255)) }
 }
 
-private val defaultItem
-    get() = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
+private val defaultItem = hmcColor.config.buttons.item.toItemStackOrNull() ?: ItemStack(Material.LEATHER_HORSE_ARMOR)
+private fun SerializableItemStack.toItemStackOrDefaultItem() = toItemStackOrNull() ?: defaultItem
