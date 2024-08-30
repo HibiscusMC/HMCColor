@@ -15,9 +15,9 @@ fun ItemStack.oraxenID(): String? = if (Plugins.isEnabled("Oraxen")) OraxenItems
 fun String.isOraxenItem() = Plugins.isEnabled("Oraxen") && OraxenItems.exists(this)
 fun String.oraxenItem(): ItemStack? = if (Plugins.isEnabled("Oraxen")) OraxenItems.getItemById(this).build() else null
 
-fun ItemStack.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && crucible.itemManager.getItem(this).isPresent
-fun ItemStack.crucibleID(): String? = if (Plugins.isEnabled("MythicCrucible")) crucible.itemManager.getItem(this).get().internalName else null
-fun String.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && crucible.itemManager.getItem(this).isPresent
+fun ItemStack.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && MythicCrucible.inst()?.itemManager?.getItem(this)?.isPresent ?: false
+fun ItemStack.crucibleID(): String? = if (Plugins.isEnabled("MythicCrucible")) MythicCrucible.inst()?.itemManager?.getItem(this)?.get()?.internalName else null
+fun String.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && MythicCrucible.inst()?.itemManager?.getItem(this)?.isPresent ?: false
 fun String.crucibleItem(): ItemStack? = if (Plugins.isEnabled("MythicCrucible")) MythicCrucible.core().itemManager.getItemStack(this) else null
 
 fun ItemStack.isItemsAdderItem() = Plugins.isEnabled("ItemsAdder") && CustomStack.byItemStack(this) != null

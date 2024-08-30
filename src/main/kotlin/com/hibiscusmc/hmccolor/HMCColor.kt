@@ -1,15 +1,16 @@
 package com.hibiscusmc.hmccolor
 
+import com.mineinabyss.geary.papermc.tracking.items.gearyItems
+import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI
+import com.mineinabyss.idofront.serialization.SerializablePrefabItemService
 import dev.triumphteam.gui.guis.Gui
-import io.lumine.mythiccrucible.MythicCrucible
-import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
-val crucible by lazy { Bukkit.getPluginManager().getPlugin("MythicCrucible") as MythicCrucible }
 var cachedColors = mutableMapOf<HMCColorConfig.Colors, Set<Color>>()
 class HMCColor : JavaPlugin() {
     override fun onEnable() {
@@ -34,6 +35,14 @@ class HMCColor : JavaPlugin() {
             override val helpers = ColorHelpers()
         }
         DI.add<HMCColorContext>(colorContext)
+
+        DI.add<SerializablePrefabItemService>(
+            object : SerializablePrefabItemService {
+                override fun encodeFromPrefab(item: ItemStack, prefabName: String) {
+                    val result = gearyItems.createItem(PrefabKey.of(prefabName), item)
+                    require(result != null) { "Failed to create serializable ItemStack from $prefabName, does the prefab exist and have a geary:set.item component?" }
+                }
+            })
 
         cachedColors = hmcColor.config.colors.values.associateWith { it.allColors }.toMutableMap()
     }

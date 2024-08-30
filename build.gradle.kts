@@ -1,6 +1,6 @@
 plugins {
     id("io.github.goooler.shadow") version "8.1.7"
-    id ("org.jetbrains.kotlin.jvm") version "1.9.20"
+    id ("org.jetbrains.kotlin.jvm") version "2.0.0"
     alias(idofrontLibs.plugins.kotlinx.serialization)
     alias(idofrontLibs.plugins.mia.copyjar)
 }
@@ -27,7 +27,7 @@ dependencies {
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.7.1")
     compileOnly("io.lumine:MythicCrucible:2.0.0")
-    compileOnly("com.mineinabyss:geary-papermc:0.30.12")
+    compileOnly("com.mineinabyss:geary-papermc:0.30.17")
 
     implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
     implementation(idofrontLibs.kotlin.stdlib)
