@@ -22,10 +22,15 @@ class HMCColor : JavaPlugin() {
     }
 
     fun createColorContext() {
+        val config = runCatching { config("config", dataFolder.toPath(), HMCColorConfig()).getOrLoad() }
+            .onFailure {
+                logger.severe("Failed to load HMCColor config: " + it.message)
+                logger.severe("Loading default config...")
+            }.getOrDefault(HMCColorConfig())
         DI.remove<HMCColorContext>()
         val colorContext = object : HMCColorContext {
             override val plugin = this@HMCColor
-            override val config: HMCColorConfig by config("config", dataFolder.toPath(), HMCColorConfig())
+            override val config = config
         }
         DI.add<HMCColorContext>(colorContext)
 
