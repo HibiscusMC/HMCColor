@@ -31,6 +31,7 @@ class HMCColor : JavaPlugin() {
         val colorContext = object : HMCColorContext {
             override val plugin = this@HMCColor
             override val config = config
+            override val helpers = ColorHelpers()
         }
         DI.add<HMCColorContext>(colorContext)
 

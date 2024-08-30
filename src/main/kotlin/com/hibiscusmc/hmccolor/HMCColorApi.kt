@@ -6,11 +6,11 @@ class HMCColorApi {
 
     companion object {
         @JvmStatic
-        fun createColorMenu(player: Player) = player.createColorMenu()
+        fun createColorMenu(player: Player) = hmcColor.helpers.createColorMenus(player)
 
         @JvmStatic
         fun openColorMenu(player: Player) {
-            player.createColorMenu().open(player)
+            createColorMenu(player).open(player)
         }
     }
 }

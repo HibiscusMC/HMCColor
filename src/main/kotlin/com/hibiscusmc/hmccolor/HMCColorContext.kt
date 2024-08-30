@@ -6,4 +6,5 @@ val hmcColor by DI.observe<HMCColorContext>()
 interface HMCColorContext {
     val plugin: HMCColor
     val config: HMCColorConfig
+    val helpers: ColorHelpers
 }

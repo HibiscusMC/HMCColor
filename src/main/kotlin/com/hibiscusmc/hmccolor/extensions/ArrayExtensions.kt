@@ -1,4 +1,4 @@
-package com.hibiscusmc.hmccolor
+package com.hibiscusmc.hmccolor.extensions
 
 fun <T> MutableList<T>.reverse(fromIndex: Int, toIndex: Int): Unit {
     if (fromIndex < 0 || toIndex > size) {

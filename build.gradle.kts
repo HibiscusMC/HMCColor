@@ -1,6 +1,6 @@
 plugins {
     id("io.github.goooler.shadow") version "8.1.7"
-    id ("org.jetbrains.kotlin.jvm") version "2.0.0"
+    id ("org.jetbrains.kotlin.jvm") version "1.9.20"
     alias(idofrontLibs.plugins.kotlinx.serialization)
     alias(idofrontLibs.plugins.mia.copyjar)
 }
@@ -47,7 +47,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-val buildPath = project.findProperty("oraxen_plugin_path") as? String?
+val buildPath = project.findProperty("plugin_path") as? String?
 copyJar {
     this.destPath.set(buildPath ?: project.path)
     this.jarName.set("HMCColor-${pluginVersion}.jar")

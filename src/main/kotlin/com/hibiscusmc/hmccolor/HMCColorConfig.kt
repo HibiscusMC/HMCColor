@@ -3,7 +3,7 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
-import com.mineinabyss.idofront.messaging.broadcastVal
+import com.hibiscusmc.hmccolor.extensions.noItalic
 import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
