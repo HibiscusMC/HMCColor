@@ -161,7 +161,7 @@ class ColorHelpers {
                 // Cancel adding non-dyeable or banned items
                 !click.cursor.type.isAir -> when {
                     !click.cursor.isDyeable() -> click.isCancelled = true
-                    click.cursor.type != click.currentItem?.type -> gui.clearOutputItem()
+                    !click.cursor.isSimilar(click.currentItem) -> gui.clearOutputItem()
                 }
             }
         }
