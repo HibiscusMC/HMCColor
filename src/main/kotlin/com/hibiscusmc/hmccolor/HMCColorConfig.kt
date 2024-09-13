@@ -134,7 +134,7 @@ data class HMCColorConfig(
         data class Normal(
             val first: @Serializable(with = IntRangeSerializer::class) IntRange = 3..5,
             val second: @Serializable(with = IntRangeSerializer::class) IntRange = 12..14,
-            val third: @Serializable(with = IntRangeSerializer::class) IntRange = 23..23
+            val third: @Serializable(with = IntRangeSerializer::class) IntRange = 21..23
         ) {
             val rows get() = listOf(first, second, third)
         }
