@@ -3,7 +3,6 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
-import com.hibiscusmc.hmccolor.extensions.noItalic
 import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
@@ -11,7 +10,6 @@ import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.*
-import net.kyori.adventure.text.Component
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -22,7 +20,7 @@ data class HMCColorConfig(
     @YamlComment(
         "FOR HMCCOSMETICS USERS:",
         "Vanilla RP Title: <white>\uE001\uE002",
-        "Oraxen Configuration Title: <white><s:-8><g:dye_menu>",
+        "Nexo Configuration Title: <white><shift:-8><glyph:dye_menu>",
         "ItemsAdder Configuration Title: '<white>:img_offset_-8::img_dye_menu:'"
     )
     val title: String = "<gradient:#aa3159:#8c0c0c>HMCColor",
@@ -32,14 +30,14 @@ data class HMCColorConfig(
     val enableEffectsMenu: Boolean = false,
     @YamlComment(
         "Can also be: ",
-        "oraxenItem: something",
+        "nexoItem: something",
         "crucibleItem: something",
         "itemsadderItem: hmccosmetics:something",
         "prefab: namespace:something"
     )
     val effectItem: SerializableItemStack = SerializableItemStack(
         type = Material.LEATHER_HORSE_ARMOR,
-        displayName = "Effect Toggle".miniMsg().noItalic(),
+        _itemName = "Effect Toggle",
         color = "#FFFCFC".toColor(),
         customModelData = 11
     ),
@@ -61,7 +59,7 @@ data class HMCColorConfig(
     data class Buttons(
         @YamlComment(
             "Can also be: ",
-            "oraxenItem: paintbrush",
+            "nexoItem: paintbrush",
             "crucibleItem: something",
             "itemsadderItem: hmccosmetics:paintbrush",
             "prefab: namespace:something"
@@ -79,7 +77,7 @@ data class HMCColorConfig(
 
     @Serializable
     data class BlackListedItems(
-        val oraxenItems: List<String> = listOf("banned_oraxen_id"),
+        val nexoItems: List<String> = listOf("banned_nexo_id"),
         val crucibleItems: List<String> = listOf("banned_crucible_id"),
         val itemsadderItems: List<String> = listOf("banned_itemsadder_id"),
         val gearyItems: List<String> = listOf("banned_geary_id"),
@@ -144,8 +142,8 @@ data class HMCColorConfig(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
             val backwardSlot: Int = row.first.minus(1),
             val forwardSlot: Int = row.last.plus(1),
-            val backwardItem: SerializableItemStack = scrollBackwardDefault.copy(displayName = "Scroll base-colors backwards".miniMsg()),
-            val forwardItem: SerializableItemStack = scrolForwardDefault.copy(displayName = "Scroll base-colors forward".miniMsg())
+            val backwardItem: SerializableItemStack = scrollBackwardDefault.copy(_itemName = "Scroll base-colors backwards"),
+            val forwardItem: SerializableItemStack = scrolForwardDefault.copy(_itemName = "Scroll base-colors forward")
         )
 
         enum class Type {
@@ -175,8 +173,8 @@ data class HMCColorConfig(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
             val backwardsSlot: Int = 36,
             val forwardsSlot: Int = 45,
-            val backwardsItem: SerializableItemStack = scrollBackwardDefault.copy(displayName = "Scroll sub-colors backwards".miniMsg().noItalic()),
-            val forwardsItem: SerializableItemStack = scrolForwardDefault.copy(displayName = "Scroll sub-colors forward".miniMsg().noItalic())
+            val backwardsItem: SerializableItemStack = scrollBackwardDefault.copy(_itemName = "Scroll sub-colors backwards"),
+            val forwardsItem: SerializableItemStack = scrolForwardDefault.copy(_itemName = "Scroll sub-colors forward")
         )
         enum class Type {
             NORMAL, SCROLLING
@@ -186,13 +184,13 @@ data class HMCColorConfig(
     companion object {
         private val scrolForwardDefault = SerializableItemStack(
             type = Material.ARROW,
-            displayName = Component.text("Next Page"),
+            _itemName = "Next Page",
             customModelData = 2
         )
 
         private val scrollBackwardDefault = SerializableItemStack(
             type = Material.ARROW,
-            displayName = Component.text("Previous Page"),
+            _itemName = "Previous Page",
             customModelData = 1
         )
 

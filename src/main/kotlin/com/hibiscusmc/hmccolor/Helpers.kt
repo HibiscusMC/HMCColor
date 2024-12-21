@@ -5,15 +5,15 @@ import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.plugin.Plugins
+import com.nexomc.nexo.api.NexoItems
 import dev.lone.itemsadder.api.CustomStack
 import io.lumine.mythiccrucible.MythicCrucible
-import io.th0rgal.oraxen.api.OraxenItems
 import org.bukkit.inventory.ItemStack
 
-fun ItemStack.isOraxenItem() = Plugins.isEnabled("Oraxen") && OraxenItems.exists(this)
-fun ItemStack.oraxenID(): String? = if (Plugins.isEnabled("Oraxen")) OraxenItems.getIdByItem(this) else null
-fun String.isOraxenItem() = Plugins.isEnabled("Oraxen") && OraxenItems.exists(this)
-fun String.oraxenItem(): ItemStack? = if (Plugins.isEnabled("Oraxen")) OraxenItems.getItemById(this).build() else null
+fun ItemStack.isNexoItem() = Plugins.isEnabled("Nexo") && NexoItems.exists(this)
+fun ItemStack.nexoID(): String? = if (Plugins.isEnabled("Nexo")) NexoItems.idFromItem(this) else null
+fun String.isNexoItem() = Plugins.isEnabled("Nexo") && NexoItems.exists(this)
+fun String.nexoItem(): ItemStack? = if (Plugins.isEnabled("Nexo")) NexoItems.itemFromId(this)?.build() else null
 
 fun ItemStack.isCrucibleItem() = Plugins.isEnabled("MythicCrucible") && MythicCrucible.inst()?.itemManager?.getItem(this)?.isPresent ?: false
 fun ItemStack.crucibleID(): String? = if (Plugins.isEnabled("MythicCrucible")) MythicCrucible.inst()?.itemManager?.getItem(this)?.get()?.internalName else null
@@ -35,7 +35,7 @@ fun ItemStack.isDyeable(): Boolean {
     val blacklist = hmcColor.config.blacklistedItems
     return when {
         itemMeta.asColorable() == null -> false
-        this.isOraxenItem() -> this.oraxenID() !in blacklist.oraxenItems
+        this.isNexoItem() -> this.nexoID() !in blacklist.nexoItems
         this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
         this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
         this.isGearyItem() -> this.gearyID() !in blacklist.gearyItems

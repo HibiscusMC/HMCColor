@@ -15,17 +15,17 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
     maven("https://jitpack.io")
-    maven("https://repo.oraxen.com/releases")
+    maven("https://repo.nexomc.com/releases")
     maven("https://repo.mineinabyss.com/releases")
     maven("https://repo.mineinabyss.com/snapshots")
     mavenLocal()
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
-    compileOnly("io.th0rgal:oraxen:1.180.0")
+    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
+    compileOnly("com.nexomc:nexo:0.7.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
-    compileOnly("io.lumine:Mythic-Dist:5.7.1")
+    compileOnly("io.lumine:Mythic-Dist:5.7.2")
     compileOnly("io.lumine:MythicCrucible:2.0.0")
     compileOnly("com.mineinabyss:geary-papermc:0.30.17")
 

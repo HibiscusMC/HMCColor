@@ -2,5 +2,5 @@ name: HMCColor
 version: "${version}"
 main: com.hibiscusmc.hmccolor.HMCColor
 api-version: "1.18"
-softdepend: [ Oraxen, ItemsAdder, MythicCrucible, Geary ]
+softdepend: [ Nexo, ItemsAdder, MythicCrucible, Geary ]
 authors: [ boy0000 ]
