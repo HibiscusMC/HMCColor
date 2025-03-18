@@ -6,6 +6,7 @@ import com.charleskorn.kaml.YamlComment
 import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
+import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
@@ -38,8 +39,8 @@ data class HMCColorConfig(
     val effectItem: SerializableItemStack = SerializableItemStack(
         type = Material.LEATHER_HORSE_ARMOR,
         _itemName = "Effect Toggle",
-        color = "#FFFCFC".toColor(),
-        customModelData = 11
+        dyedColor = SerializableDataTypes.DyedColor("#FFFCFC".toColor()),
+        customModelData = SerializableDataTypes.CustomModelData(floats = listOf(11f))
     ),
     val effects: Map<String, Effect> = mapOf(
         "space_effect" to Effect(
@@ -66,7 +67,7 @@ data class HMCColorConfig(
         )
         val item: SerializableItemStack = SerializableItemStack(
             type = Material.LEATHER_HORSE_ARMOR,
-            customModelData = 1
+            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(1f))
         ),
         val inputSlot: Int = 10,
         val outputSlot: Int = 16,
@@ -185,13 +186,13 @@ data class HMCColorConfig(
         private val scrolForwardDefault = SerializableItemStack(
             type = Material.ARROW,
             _itemName = "Next Page",
-            customModelData = 2
+            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(2f))
         )
 
         private val scrollBackwardDefault = SerializableItemStack(
             type = Material.ARROW,
             _itemName = "Previous Page",
-            customModelData = 1
+            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(1f))
         )
 
         private val defaultColors = mapOf(

@@ -1,6 +1,8 @@
 package com.hibiscusmc.hmccolor
 
-import com.mineinabyss.geary.papermc.tracking.items.gearyItems
+import com.mineinabyss.geary.papermc.gearyPaper
+import com.mineinabyss.geary.papermc.tracking.items.GearyItemProvider
+import com.mineinabyss.geary.papermc.tracking.items.ItemTracking
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.config.config
 import com.mineinabyss.idofront.di.DI

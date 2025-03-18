@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import java.awt.Color
 import java.util.*
+import org.bukkit.Bukkit
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -27,7 +28,9 @@ class ColorHelpers {
     private val subColorScrollingIndex: MutableMap<UUID, Int> = mutableMapOf()
 
     fun createColorMenus(player: Player): Gui {
-        val gui = Gui.gui(GuiType.CHEST).rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).create()
+        val gui = Gui.gui().rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).inventory { title, owner, rows ->
+            Bukkit.createInventory(owner, rows, title)
+        }.create()
         val cachedDyeMap = dyeColorItemMap(player)
         val cachedEffectSet = effectItemList(player)
         var effectToggleState = false

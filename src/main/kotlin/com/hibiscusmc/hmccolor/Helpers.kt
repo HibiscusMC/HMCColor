@@ -1,7 +1,10 @@
 package com.hibiscusmc.hmccolor
 
+import com.mineinabyss.geary.modules.Geary
+import com.mineinabyss.geary.papermc.WorldManager
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
-import com.mineinabyss.geary.papermc.tracking.items.gearyItems
+import com.mineinabyss.geary.papermc.gearyPaper
+import com.mineinabyss.geary.papermc.tracking.items.ItemTracking
 import com.mineinabyss.geary.prefabs.PrefabKey
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.plugin.Plugins
@@ -25,9 +28,10 @@ fun ItemStack.itemsAdderID() = if (Plugins.isEnabled("ItemsAdder")) CustomStack.
 fun String.isItemsAdderItem() = Plugins.isEnabled("ItemsAdder") && CustomStack.isInRegistry(this)
 fun String.itemsAdderItem() = if (Plugins.isEnabled("ItemsAdder")) CustomStack.getInstance(this)?.itemStack else null
 
-fun ItemStack.isGearyItem() = Plugins.isEnabled("Geary") &&
-    this.itemMeta?.persistentDataContainer?.decodePrefabs()?.firstOrNull()?.let { gearyItems.createItem(it) != null } ?: false
-fun ItemStack.gearyID() = this.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full
+val gearyItems get() = gearyPaper.worldManager.global.getAddon(ItemTracking)
+val globalGeary get() = gearyPaper.worldManager.global
+fun ItemStack.isGearyItem() = Plugins.isEnabled("Geary") && with(gearyPaper.worldManager.global) { this@isGearyItem.itemMeta?.persistentDataContainer?.decodePrefabs()?.firstOrNull()?.let { gearyItems.createItem(it) != null } ?: false }
+fun ItemStack.gearyID() = with(gearyPaper.worldManager.global) { this@gearyID.itemMeta?.persistentDataContainer?.decodePrefabs()?.first()?.full }
 fun String.isGearyItem() = Plugins.isEnabled("Geary") && PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) != null } ?: false
 fun String.gearyItem() = if (Plugins.isEnabled("Geary")) PrefabKey.ofOrNull(this)?.let { gearyItems.createItem(it) } else null
 
