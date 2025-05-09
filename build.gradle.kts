@@ -24,11 +24,11 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
-    compileOnly("com.nexomc:nexo:1.1.0")
+    compileOnly("com.nexomc:nexo:1.5.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.8.0")
     compileOnly("io.lumine:MythicCrucible:2.1.0")
-    compileOnly("com.mineinabyss:geary-papermc:0.32.0-dev.0")
+    compileOnly("com.mineinabyss:geary-papermc:0.32.1")
 
     implementation("dev.triumphteam:triumph-gui:3.2.0-SNAPSHOT") { exclude("net.kyori") }
     implementation(idofrontLibs.kotlin.stdlib)

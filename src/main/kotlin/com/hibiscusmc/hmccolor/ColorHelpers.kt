@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack
 import java.awt.Color
 import java.util.*
 import org.bukkit.Bukkit
+import org.bukkit.event.inventory.InventoryCloseEvent
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -131,6 +132,14 @@ class ColorHelpers {
             fillSubColorRow(gui, player, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
         }
         effectItem?.let { gui.setItem(buttons.effectButton, it) }
+
+        val closeMenuItem = hmcColor.config.closeButton.toItemStackOrDefaultItem()
+            .takeIf { buttons.closeButton != null }?.let(ItemBuilder::from)?.asGuiItem { click ->
+                click.isCancelled = true
+                click.whoClicked.closeInventory(InventoryCloseEvent.Reason.PLUGIN)
+            }
+
+        closeMenuItem?.let { gui.setItem(buttons.closeButton!!, it) }
 
         gui.setDragAction { it.isCancelled = true }
         gui.setOutsideClickAction { it.isCancelled = true }

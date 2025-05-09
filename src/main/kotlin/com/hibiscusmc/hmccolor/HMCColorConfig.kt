@@ -51,7 +51,11 @@ data class HMCColorConfig(
     ),
     val colorPermission: String = "hmccolor.dye",
     private val noPermissionMessage: String = "<red>You do not have access to this color!",
-    val colors: Map<String, Colors> = defaultColors
+    val colors: Map<String, Colors> = defaultColors,
+    val closeButton: SerializableItemStack = SerializableItemStack(
+        type = Material.LEATHER_HORSE_ARMOR,
+        _itemName = "Effect Toggle"
+    )
 ) {
 
     @Transient val noPermissionComponent = noPermissionMessage.miniMsg()
@@ -74,6 +78,7 @@ data class HMCColorConfig(
         val baseColorGrid: BaseColorGrid = BaseColorGrid(),
         val subColorGrid: SubColorGrid = SubColorGrid(),
         val effectButton: Int = 54,
+        @EncodeDefault(EncodeDefault.Mode.NEVER) val closeButton: Int? = null
     )
 
     @Serializable
