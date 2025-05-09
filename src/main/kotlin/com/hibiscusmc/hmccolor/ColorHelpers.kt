@@ -324,20 +324,20 @@ class ColorHelpers {
     private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColorItem: GuiItem) {
         val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
         val guiOutput = GuiItem(
-            guiInput.itemStack.clone().editItemMeta {
-                val appliedColor = (subColorItem.itemStack.itemMeta?.asColorable())?.color ?: return@editItemMeta
+            guiInput.itemStack.clone().also { itemStack ->
+                val appliedColor = (subColorItem.itemStack.asColorable())?.color ?: return@also
                 // If player lacks permission, skip applying any color to output item
                 hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
-                    if (!colors.canUse(click.whoClicked as Player)) return@editItemMeta
+                    if (!colors.canUse(click.whoClicked as Player)) return@also
                 }
 
                 hmcColor.config.colors.values.map { it.subColors }.flatten().find { it.color == appliedColor }?.let { subColor ->
                     val player = click.whoClicked as? Player ?: return@let
-                    val baseColor = hmcColor.config.colors.values.find { subColor in it.subColors }?.baseColor ?: return@editItemMeta
-                    if (!subColor.canUse(player, baseColor)) return@editItemMeta
+                    val baseColor = hmcColor.config.colors.values.find { subColor in it.subColors }?.baseColor ?: return@also
+                    if (!subColor.canUse(player, baseColor)) return@also
                 }
 
-                (this.asColorable() ?: return).color = appliedColor
+                (itemStack.asColorable() ?: return).color = appliedColor
             }
         )
 
