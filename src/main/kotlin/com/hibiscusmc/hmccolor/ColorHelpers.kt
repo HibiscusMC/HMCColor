@@ -14,6 +14,7 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.inventory.ItemStack
 import java.awt.Color
 import java.util.*
@@ -323,24 +324,24 @@ class ColorHelpers {
 
     private fun handleSubColorClick(gui: Gui, click: InventoryClickEvent, subColorItem: GuiItem) {
         val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
-        val guiOutput = GuiItem(
-            guiInput.itemStack.clone().also { itemStack ->
-                val appliedColor = (subColorItem.itemStack.asColorable())?.color ?: return@also
-                // If player lacks permission, skip applying any color to output item
-                hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
-                    if (!colors.canUse(click.whoClicked as Player)) return@also
-                }
+        val appliedColor = (subColorItem.itemStack.itemMeta as? LeatherArmorMeta)?.color ?: return
+        val player = click.whoClicked as? Player ?: return
 
-                hmcColor.config.colors.values.map { it.subColors }.flatten().find { it.color == appliedColor }?.let { subColor ->
-                    val player = click.whoClicked as? Player ?: return@let
-                    val baseColor = hmcColor.config.colors.values.find { subColor in it.subColors }?.baseColor ?: return@also
-                    if (!subColor.canUse(player, baseColor)) return@also
-                }
+        hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
+            if (!colors.canUse(player)) return
+        }
 
-                (itemStack.asColorable() ?: return).color = appliedColor
-            }
-        )
+        hmcColor.config.colors.values.map { it.subColors }.flatten().find { it.color == appliedColor }?.let { subColor ->
+            val baseColor = hmcColor.config.colors.values.find { subColor in it.subColors }?.baseColor ?: return
+            if (!subColor.canUse(player, baseColor)) return
+        }
 
+        val dyedItem = guiInput.itemStack.clone()
+        val meta = dyedItem.itemMeta as? LeatherArmorMeta ?: return
+        meta.setColor(appliedColor)
+        dyedItem.itemMeta = meta
+
+        val guiOutput = GuiItem(dyedItem)
         gui.updateItem(hmcColor.config.buttons.outputSlot, guiOutput)
         guiOutput.setAction output@{ click ->
             when {
