@@ -6,19 +6,18 @@ import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.serialization.SerializableItemStack
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.triumphteam.gui.builder.item.ItemBuilder
-import dev.triumphteam.gui.components.GuiType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
 import java.awt.Color
 import java.util.*
-import org.bukkit.Bukkit
-import org.bukkit.event.inventory.InventoryCloseEvent
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -325,7 +324,10 @@ class ColorHelpers {
         val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
         val guiOutput = GuiItem(
             guiInput.itemStack.clone().also { itemStack ->
-                val appliedColor = (subColorItem.itemStack.asColorable())?.color ?: return@also
+                val appliedColor = when {
+                    HMCColorPluginLoader.Version.atleast("1.21.4") -> subColorItem.itemStack.asColorable()
+                    else -> subColorItem.itemStack.itemMeta?.asColorable()
+                }?.color ?: return@also
                 // If player lacks permission, skip applying any color to output item
                 hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
                     if (!colors.canUse(click.whoClicked as Player)) return@also
@@ -337,7 +339,13 @@ class ColorHelpers {
                     if (!subColor.canUse(player, baseColor)) return@also
                 }
 
-                (itemStack.asColorable() ?: return).color = appliedColor
+                when {
+                    HMCColorPluginLoader.Version.atleast("1.21.4") -> {
+                        (itemStack.asColorable() ?: return)
+                    }
+                    else -> (itemStack.itemMeta?.asColorable() ?: return)
+                }.color = appliedColor
+
             }
         )
 
