@@ -3,17 +3,21 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
+import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.serialization.ColorSerializer
 import com.mineinabyss.idofront.serialization.IntRangeSerializer
 import com.mineinabyss.idofront.serialization.MaterialByNameSerializer
-import com.mineinabyss.idofront.serialization.SerializableDataTypes
 import com.mineinabyss.idofront.serialization.SerializableItemStack
+import com.mineinabyss.idofront.serialization.toSerializable
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.*
+import net.kyori.adventure.text.Component
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.LeatherArmorMeta
 import org.bukkit.permissions.Permission
 
 @Serializable
@@ -36,12 +40,11 @@ data class HMCColorConfig(
         "itemsadderItem: hmccosmetics:something",
         "prefab: namespace:something"
     )
-    val effectItem: SerializableItemStack = SerializableItemStack(
-        type = Material.LEATHER_HORSE_ARMOR,
-        _itemName = "Effect Toggle",
-        dyedColor = SerializableDataTypes.DyedColor("#FFFCFC".toColor()),
-        customModelData = SerializableDataTypes.CustomModelData(floats = listOf(11f))
-    ),
+    val effectItem: SerializableItemStack = ItemStack(Material.LEATHER_HORSE_ARMOR).editItemMeta<LeatherArmorMeta> {
+        this.itemName(Component.text("Effect Toggle"))
+        this.setCustomModelData(11)
+        this.setColor("#FFFCFC".toColor())
+    }.toSerializable(),
     val effects: Map<String, Effect> = mapOf(
         "space_effect" to Effect(
             "Space Effect",
@@ -52,10 +55,9 @@ data class HMCColorConfig(
     val colorPermission: String = "hmccolor.dye",
     private val noPermissionMessage: String = "<red>You do not have access to this color!",
     val colors: Map<String, Colors> = defaultColors,
-    val closeButton: SerializableItemStack = SerializableItemStack(
-        type = Material.LEATHER_HORSE_ARMOR,
-        _itemName = "Effect Toggle"
-    )
+    val closeButton: SerializableItemStack = ItemStack(Material.LEATHER_HORSE_ARMOR).editItemMeta<LeatherArmorMeta> {
+        this.itemName(Component.text("Effect Toggle"))
+    }.toSerializable()
 ) {
 
     @Transient val noPermissionComponent = noPermissionMessage.miniMsg()
@@ -69,10 +71,9 @@ data class HMCColorConfig(
             "itemsadderItem: hmccosmetics:paintbrush",
             "prefab: namespace:something"
         )
-        val item: SerializableItemStack = SerializableItemStack(
-            type = Material.LEATHER_HORSE_ARMOR,
-            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(1f))
-        ),
+        val item: SerializableItemStack = ItemStack(Material.LEATHER_HORSE_ARMOR).editItemMeta<LeatherArmorMeta> {
+            this.setCustomModelData(1)
+        }.toSerializable(),
         val inputSlot: Int = 10,
         val outputSlot: Int = 16,
         val baseColorGrid: BaseColorGrid = BaseColorGrid(),
@@ -148,8 +149,14 @@ data class HMCColorConfig(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 19..25,
             val backwardSlot: Int = row.first.minus(1),
             val forwardSlot: Int = row.last.plus(1),
-            val backwardItem: SerializableItemStack = scrollBackwardDefault.copy(_itemName = "Scroll base-colors backwards"),
-            val forwardItem: SerializableItemStack = scrolForwardDefault.copy(_itemName = "Scroll base-colors forward")
+            val backwardItem: SerializableItemStack = ItemStack(Material.ARROW).editItemMeta {
+                this.itemName(Component.text("Scroll base-colors backwards"))
+                this.setCustomModelData(1)
+            }.toSerializable(),
+            val forwardItem: SerializableItemStack = ItemStack(Material.ARROW).editItemMeta {
+                this.itemName(Component.text("Scroll base-colors forward"))
+                this.setCustomModelData(2)
+            }.toSerializable()
         )
 
         enum class Type {
@@ -179,8 +186,14 @@ data class HMCColorConfig(
             val row: @Serializable(with = IntRangeSerializer::class) IntRange = 46..52,
             val backwardsSlot: Int = 36,
             val forwardsSlot: Int = 45,
-            val backwardsItem: SerializableItemStack = scrollBackwardDefault.copy(_itemName = "Scroll sub-colors backwards"),
-            val forwardsItem: SerializableItemStack = scrolForwardDefault.copy(_itemName = "Scroll sub-colors forward")
+            val backwardsItem: SerializableItemStack = ItemStack(Material.ARROW).editItemMeta {
+                this.itemName(Component.text("Scroll sub-colors backwards"))
+                this.setCustomModelData(1)
+            }.toSerializable(),
+            val forwardsItem: SerializableItemStack = ItemStack(Material.ARROW).editItemMeta {
+                this.itemName(Component.text("Scroll sub-colors forward"))
+                this.setCustomModelData(2)
+            }.toSerializable()
         )
         enum class Type {
             NORMAL, SCROLLING
@@ -188,18 +201,6 @@ data class HMCColorConfig(
     }
 
     companion object {
-        private val scrolForwardDefault = SerializableItemStack(
-            type = Material.ARROW,
-            _itemName = "Next Page",
-            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(2f))
-        )
-
-        private val scrollBackwardDefault = SerializableItemStack(
-            type = Material.ARROW,
-            _itemName = "Previous Page",
-            customModelData = SerializableDataTypes.CustomModelData(floats = listOf(1f))
-        )
-
         private val defaultColors = mapOf(
             "red" to Colors(
                 Colors.BaseColor("<#D23635>Red", "#D23635".toColor()),

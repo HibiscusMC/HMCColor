@@ -18,7 +18,10 @@ class HMCColorApi {
 
         @JvmStatic
         fun getItemColor(itemStack: ItemStack): Color? {
-            return itemStack.asColorable()?.color
+            return when {
+                HMCColorPluginLoader.Version.atleast("1.21.4") -> itemStack.asColorable()?.color
+                else -> itemStack.itemMeta?.asColorable()?.color
+            }
         }
     }
 }

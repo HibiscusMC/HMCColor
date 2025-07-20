@@ -325,7 +325,10 @@ class ColorHelpers {
         val guiInput = click.inventory.getItem(hmcColor.config.buttons.inputSlot)?.let { i -> GuiItem(i) } ?: return
         val guiOutput = GuiItem(
             guiInput.itemStack.clone().also { itemStack ->
-                val appliedColor = (subColorItem.itemStack.asColorable())?.color ?: return@also
+                val appliedColor = when {
+                    HMCColorPluginLoader.Version.atleast("1.21.4") -> subColorItem.itemStack.asColorable()
+                    else -> subColorItem.itemStack.itemMeta?.asColorable()
+                }?.color ?: return@also
                 // If player lacks permission, skip applying any color to output item
                 hmcColor.config.effects.values.firstOrNull { e -> e.color == appliedColor }?.let { colors ->
                     if (!colors.canUse(click.whoClicked as Player)) return@also
@@ -337,7 +340,13 @@ class ColorHelpers {
                     if (!subColor.canUse(player, baseColor)) return@also
                 }
 
-                (itemStack.asColorable() ?: return).color = appliedColor
+                when {
+                    HMCColorPluginLoader.Version.atleast("1.21.4") -> {
+                        (itemStack.asColorable() ?: return)
+                    }
+                    else -> (itemStack.itemMeta?.asColorable() ?: return)
+                }.color = appliedColor
+
             }
         )
 

@@ -1,8 +1,7 @@
 plugins {
     id("com.gradleup.shadow") version "8.3.5"
-    id ("org.jetbrains.kotlin.jvm") version "2.1.0"
-    alias(idofrontLibs.plugins.kotlinx.serialization)
-    alias(idofrontLibs.plugins.mia.copyjar)
+    id ("org.jetbrains.kotlin.jvm") version "2.1.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
 }
 
 val pluginVersion: String by project
@@ -23,25 +22,26 @@ repositories {
 }
 
 dependencies {
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.10")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("com.charleskorn.kaml:kaml:0.72.0")
+
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
-    compileOnly("com.nexomc:nexo:1.5.0")
+    compileOnly("com.nexomc:nexo:1.8.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.8.0")
     compileOnly("io.lumine:MythicCrucible:2.1.0")
     compileOnly("com.mineinabyss:geary-papermc:0.32.1")
 
-    implementation("dev.triumphteam:triumph-gui:3.2.0-SNAPSHOT") { exclude("net.kyori") }
-    implementation(idofrontLibs.kotlin.stdlib)
-    implementation(idofrontLibs.kotlinx.serialization.json)
-    implementation(idofrontLibs.kotlinx.serialization.kaml)
+    compileOnly(idofrontLibs.idofront.di)
+    compileOnly(idofrontLibs.idofront.commands)
+    compileOnly(idofrontLibs.idofront.config)
+    compileOnly(idofrontLibs.idofront.text.components)
+    compileOnly(idofrontLibs.idofront.logging)
+    compileOnly(idofrontLibs.idofront.serializers)
+    compileOnly(idofrontLibs.idofront.util)
 
-    implementation(idofrontLibs.idofront.di)
-    implementation(idofrontLibs.idofront.commands)
-    implementation(idofrontLibs.idofront.config)
-    implementation(idofrontLibs.idofront.text.components)
-    implementation(idofrontLibs.idofront.logging)
-    implementation(idofrontLibs.idofront.serializers)
-    implementation(idofrontLibs.idofront.util)
+    implementation("dev.triumphteam:triumph-gui:3.2.0-SNAPSHOT") { exclude("net.kyori") }
 }
 
 kotlin {
@@ -55,24 +55,16 @@ kotlin {
     }
 }
 
-val buildPath = project.findProperty("plugin_path") as? String?
-copyJar {
-    this.destPath.set(buildPath ?: project.path)
-    this.jarName.set("HMCColor-${pluginVersion}.jar")
-    this.excludePlatformDependencies.set(false)
-}
-
 tasks {
 
     shadowJar {
-        filesMatching(arrayOf("plugin.yml").asIterable()) {
+        filesMatching(arrayOf("paper-plugin.yml").asIterable()) {
             expand(mapOf("version" to pluginVersion))
         }
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.shaded.gui")
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.shaded.configurate")
         relocate("org.bstats", "com.hibiscusmc.hmccolor.shaded.bstats")
-        relocate("kotlin", "com.hibiscusmc.hmccolor.shaded.kotlin")
-        relocate("org.jetbrains", "com.hibiscusmc.hmccolor.shaded.jetbrains")
-        relocate("com.mineinabyss.idofront", "com.hibiscusmc.hmccolor.shaded.idofront")
     }
+
+    build.get().dependsOn(shadowJar)
 }
