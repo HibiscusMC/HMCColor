@@ -10,7 +10,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
-var cachedColors = mutableMapOf<HMCColorConfig.Colors, Set<Color>>()
+val cachedColors = mutableMapOf<HMCColorConfig.Colors, Set<Color>>()
 class HMCColor : JavaPlugin() {
     override fun onEnable() {
         createColorContext()
@@ -45,6 +45,7 @@ class HMCColor : JavaPlugin() {
                 }
             })
 
-        cachedColors = hmcColor.config.colors.values.associateWith { it.allColors }.toMutableMap()
+        cachedColors.clear()
+        cachedColors.putAll(hmcColor.config.colors.values.associateWith { it.allColors })
     }
 }

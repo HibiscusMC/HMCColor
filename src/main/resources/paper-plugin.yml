@@ -2,7 +2,8 @@ name: HMCColor
 version: "${version}"
 main: com.hibiscusmc.hmccolor.HMCColor
 loader: com.hibiscusmc.hmccolor.HMCColorPluginLoader
-api-version: "1.21"
+bootstrapper: com.hibiscusmc.hmccolor.HMCColorBootstrap
+api-version: "1.21.6"
 authors: [ boy0000 ]
 
 dependencies:

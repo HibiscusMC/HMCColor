@@ -1,10 +1,11 @@
 package com.hibiscusmc.hmccolor
 
+import com.hibiscusmc.hmccolor.extensions.Version
+import com.hibiscusmc.hmccolor.extensions.deserialize
 import com.hibiscusmc.hmccolor.extensions.rotatedLeft
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.serialization.SerializableItemStack
-import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.triumphteam.gui.builder.item.ItemBuilder
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
@@ -28,7 +29,7 @@ class ColorHelpers {
     private val subColorScrollingIndex: MutableMap<UUID, Int> = mutableMapOf()
 
     fun createColorMenus(player: Player): Gui {
-        val gui = Gui.gui().rows(hmcColor.config.rows).title(hmcColor.config.title.miniMsg()).inventory { title, owner, rows ->
+        val gui = Gui.gui().rows(hmcColor.config.rows).title(hmcColor.config.title.deserialize()).inventory { title, owner, rows ->
             Bukkit.createInventory(owner, rows, title)
         }.create()
         val cachedDyeMap = dyeColorItemMap(player)
@@ -325,7 +326,7 @@ class ColorHelpers {
         val guiOutput = GuiItem(
             guiInput.itemStack.clone().also { itemStack ->
                 val appliedColor = when {
-                    HMCColorPluginLoader.Version.atleast("1.21.4") -> subColorItem.itemStack.asColorable()
+                    Version.atleast("1.21.4") -> subColorItem.itemStack.asColorable()
                     else -> subColorItem.itemStack.itemMeta?.asColorable()
                 }?.color ?: return@also
                 // If player lacks permission, skip applying any color to output item
@@ -340,9 +341,7 @@ class ColorHelpers {
                 }
 
                 when {
-                    HMCColorPluginLoader.Version.atleast("1.21.4") -> {
-                        (itemStack.asColorable() ?: return)
-                    }
+                    Version.atleast("1.21.4") -> (itemStack.asColorable() ?: return)
                     else -> (itemStack.itemMeta?.asColorable() ?: return)
                 }.color = appliedColor
 
@@ -373,7 +372,7 @@ class ColorHelpers {
     private fun effectItemList(player: Player) : MutableSet<GuiItem> {
         return hmcColor.config.effects.values.map effectColor@{ effect ->
             GuiItem(defaultItem.editItemMeta {
-                displayName(effect.name.miniMsg())
+                displayName(effect.name.deserialize())
                 if (!effect.canUse(player)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                 this.asColorable()?.color = effect.color
             })
@@ -388,7 +387,7 @@ class ColorHelpers {
                 val (baseColor, subColors) = colors
 
                 baseItem.editItemMeta {
-                    displayName(baseColor.name.miniMsg())
+                    displayName(baseColor.name.deserialize())
                     if (!baseColor.canUse(player)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                     this.asColorable()?.color = baseColor.color
                 }
@@ -419,7 +418,7 @@ class ColorHelpers {
                 } else {
                     subColors.forEach subColor@{ subColor ->
                         subItem.clone().editItemMeta {
-                            displayName(subColor.name.miniMsg())
+                            displayName(subColor.name.deserialize())
                             if (!subColor.canUse(player, baseColor)) lore()?.add(hmcColor.config.noPermissionComponent) ?: lore(listOf(hmcColor.config.noPermissionComponent))
                             this.asColorable()?.color = subColor.color
                         }.let {

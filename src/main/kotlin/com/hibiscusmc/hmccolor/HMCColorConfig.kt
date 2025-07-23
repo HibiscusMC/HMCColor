@@ -3,9 +3,9 @@
 package com.hibiscusmc.hmccolor
 
 import com.charleskorn.kaml.YamlComment
+import com.hibiscusmc.hmccolor.extensions.deserialize
 import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.serialization.*
-import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.idofront.util.toColor
 import kotlinx.serialization.*
 import net.kyori.adventure.text.Component
@@ -56,7 +56,7 @@ data class HMCColorConfig(
     }.toSerializable()
 ) {
 
-    @Transient val noPermissionComponent = noPermissionMessage.miniMsg()
+    @Transient val noPermissionComponent = noPermissionMessage.deserialize()
 
     @Serializable
     data class Buttons(

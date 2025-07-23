@@ -5,6 +5,7 @@ plugins {
 }
 
 val pluginVersion: String by project
+val idofrontVersion: String by project
 group = "com.hibiscusmc"
 version = pluginVersion
 
@@ -24,22 +25,19 @@ repositories {
 dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.0")
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("com.charleskorn.kaml:kaml:0.85.0")
+    compileOnly("com.charleskorn.kaml:kaml:0.85.0")
 
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
     compileOnly("com.nexomc:nexo:1.8.0")
     compileOnly("com.github.LoneDev6:api-itemsadder:3.4.1e")
     compileOnly("io.lumine:Mythic-Dist:5.9.5")
     compileOnly("io.lumine:MythicCrucible:2.2.0-SNAPSHOT")
     compileOnly("com.mineinabyss:geary-papermc:0.32.6")
 
-    compileOnly(idofrontLibs.idofront.di)
-    compileOnly(idofrontLibs.idofront.commands)
-    compileOnly(idofrontLibs.idofront.config)
-    compileOnly(idofrontLibs.idofront.text.components)
-    compileOnly(idofrontLibs.idofront.logging)
-    compileOnly(idofrontLibs.idofront.serializers)
-    compileOnly(idofrontLibs.idofront.util)
+    compileOnly("com.mineinabyss:idofront-di:$idofrontVersion")
+    compileOnly("com.mineinabyss:idofront-config:$idofrontVersion")
+    compileOnly("com.mineinabyss:idofront-util:$idofrontVersion")
+    compileOnly("com.mineinabyss:idofront-serializers:$idofrontVersion")
 
     implementation("dev.triumphteam:triumph-gui:3.2.0-SNAPSHOT") { exclude("net.kyori") }
 }

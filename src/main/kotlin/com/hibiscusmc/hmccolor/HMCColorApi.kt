@@ -1,5 +1,6 @@
 package com.hibiscusmc.hmccolor
 
+import com.hibiscusmc.hmccolor.extensions.Version
 import com.mineinabyss.idofront.items.asColorable
 import org.bukkit.Color
 import org.bukkit.entity.Player
@@ -19,7 +20,7 @@ class HMCColorApi {
         @JvmStatic
         fun getItemColor(itemStack: ItemStack): Color? {
             return when {
-                HMCColorPluginLoader.Version.atleast("1.21.4") -> itemStack.asColorable()?.color
+                Version.atleast("1.21.4") -> itemStack.asColorable()?.color
                 else -> itemStack.itemMeta?.asColorable()?.color
             }
         }
