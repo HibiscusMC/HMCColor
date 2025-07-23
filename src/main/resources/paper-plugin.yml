@@ -3,7 +3,7 @@ version: "${version}"
 main: com.hibiscusmc.hmccolor.HMCColor
 loader: com.hibiscusmc.hmccolor.HMCColorPluginLoader
 bootstrapper: com.hibiscusmc.hmccolor.HMCColorBootstrap
-api-version: "1.21.6"
+api-version: "1.21"
 authors: [ boy0000 ]
 
 dependencies:

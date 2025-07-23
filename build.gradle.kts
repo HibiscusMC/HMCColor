@@ -62,6 +62,8 @@ tasks {
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccolor.shaded.gui")
         relocate("org.spongepowered.configurate", "com.hibiscusmc.hmccolor.shaded.configurate")
         relocate("org.bstats", "com.hibiscusmc.hmccolor.shaded.bstats")
+
+        archiveFileName.set("HMCColor-$pluginVersion.jar")
     }
 
     build.get().dependsOn(shadowJar)

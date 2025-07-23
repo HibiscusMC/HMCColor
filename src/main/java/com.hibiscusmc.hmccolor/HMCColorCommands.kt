@@ -15,4 +15,9 @@ class HMCColorCommands : BasicCommand {
             "dye" -> HMCColorApi.openColorMenu(source.executor as Player)
         }
     }
+
+    override fun suggest(source: CommandSourceStack, args: Array<out String>): Collection<String> {
+        if (args.isEmpty()) return emptyList()
+        return listOf("reload", "dye").filter { it.startsWith(args[0], true) }
+    }
 }
