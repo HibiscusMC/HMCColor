@@ -85,51 +85,47 @@ class ColorHelpers {
                     gui.clearOutputItem()
                 }
 
+                fun updateGuiItem(slot: Int, item: SerializableItemStack, indexOffset: Int) {
+                    gui.updateItem(slot, ItemBuilder.from(item.toItemStackOrDefaultItem()).asGuiItem {
+                        val index = baseColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) + indexOffset } ?: 0
+                        cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
+                            item.setAction { selectBaseColor(item, slot) }
+                            gui.updateItem(slot, item)
+                        }
+                        val centerBaseColor = gui.getGuiItem(baseRowCenterSlot) ?: return@asGuiItem
+                        selectBaseColor(centerBaseColor, baseRowCenterSlot)
+                    })
+                }
+
                 // Initial setup of base color row
                 cachedDyeKeys.zip(baseRow).forEach { (item, slot) ->
                     item.setAction { selectBaseColor(item, slot) }
                     gui.updateItem(slot, item)
                 }
 
-                val (backwardSlot, scrollBackward) = baseColorGrid.scrollingGrid.let { it.backwardSlot to (it.backwardItem.toItemStackOrDefaultItem()) }
-                val (forwardSlot, scrollForward) = baseColorGrid.scrollingGrid.let { it.forwardSlot to (it.forwardItem.toItemStackOrDefaultItem()) }
-                gui.updateItem(backwardSlot, ItemBuilder.from(scrollBackward).asGuiItem {
-                    val index = baseColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) - 1 } ?: 0
-                    cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
-                        item.setAction { selectBaseColor(item, slot) }
-                        gui.updateItem(slot, item)
-                    }
-                    val centerBaseColor = gui.getGuiItem(baseRowCenterSlot) ?: return@asGuiItem
-                    selectBaseColor(centerBaseColor, baseRowCenterSlot)
-                })
-                gui.updateItem(forwardSlot, ItemBuilder.from(scrollForward).asGuiItem {
-                    val index = baseColorScrollingIndex.compute(player.uniqueId) { _, v -> (v ?: 0) + 1 } ?: 0
-                    cachedDyeKeys.rotatedLeft(index).zip(baseRow).forEach { (item, slot) ->
-                        item.setAction { selectBaseColor(item, slot) }
-                        gui.updateItem(slot, item)
-                    }
-                    val centerBaseColor = gui.getGuiItem(baseRowCenterSlot) ?: return@asGuiItem
-                    selectBaseColor(centerBaseColor, baseRowCenterSlot)
-                })
+                updateGuiItem(baseColorGrid.scrollingGrid.backwardSlot, baseColorGrid.scrollingGrid.backwardItem, -1)
+                updateGuiItem(baseColorGrid.scrollingGrid.forwardSlot, baseColorGrid.scrollingGrid.forwardItem, 1)
             }
         }
 
         // Effects toggle
-        val effectItem = if (cachedEffectSet.isEmpty() || !hmcColor.config.enableEffectsMenu) null
-        else ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrDefaultItem()).asGuiItem { click ->
-            click.isCancelled = true
-            effectToggleState = !effectToggleState
-            val firstDyeCache = cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
-            val effectSubRow = cachedEffectSet.toMutableList()
-            // Ensure effectSubRow is same size as firstDyeCache
-            // If less, fill start and end of list with GuiItem(AIR) to center whatever is in the effectRowSet
-            val middle = (firstDyeCache.size - effectSubRow.size) / 2
-            if (effectSubRow.size < firstDyeCache.size) List(middle) { GuiItem(Material.AIR) }.let {
-                effectSubRow.addAll(0, it)
-                effectSubRow += it
+        val effectItem = when {
+            cachedEffectSet.isEmpty() || !hmcColor.config.enableEffectsMenu -> null
+            else -> ItemBuilder.from(hmcColor.config.effectItem.toItemStackOrDefaultItem()).asGuiItem { click ->
+                click.isCancelled = true
+                effectToggleState = !effectToggleState
+                val firstDyeCache = cachedDyeMap.values.firstOrNull() ?: return@asGuiItem
+                val effectSubRow = cachedEffectSet.toMutableList()
+                // Ensure effectSubRow is same size as firstDyeCache
+                // If less, fill start and end of list with GuiItem(AIR) to center whatever is in the effectRowSet
+                val middle = (firstDyeCache.size - effectSubRow.size) / 2
+                if (effectSubRow.size < firstDyeCache.size) List(middle) { GuiItem(Material.AIR) }.let {
+                    effectSubRow.addAll(0, it)
+                    effectSubRow += it
+                }
+                val dyeMap = if (effectToggleState) effectSubRow else firstDyeCache
+                fillSubColorRow(gui, player, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
             }
-            val dyeMap = if (effectToggleState) effectSubRow else firstDyeCache
-            fillSubColorRow(gui, player, dyeMap, cachedDyeMap.values.flatten(), cachedEffectSet)
         }
         effectItem?.let { gui.setItem(buttons.effectButton, it) }
 
@@ -138,7 +134,6 @@ class ColorHelpers {
                 click.isCancelled = true
                 click.whoClicked.closeInventory(InventoryCloseEvent.Reason.PLUGIN)
             }
-
         closeMenuItem?.let { gui.setItem(buttons.closeButton!!, it) }
 
         gui.setDragAction { it.isCancelled = true }
@@ -163,9 +158,7 @@ class ColorHelpers {
                     gui.updateItem(hmcColor.config.buttons.outputSlot, ItemStack(Material.AIR))
                 }
                 // Cancel any non input/output/effectToggle slot
-                click.slot !in hmcColor.config.buttons.let { c ->
-                    setOf(c.inputSlot, c.outputSlot, c.effectButton) }
-                -> click.isCancelled = true
+                click.slot !in hmcColor.config.buttons.let { c -> setOf(c.inputSlot, c.outputSlot, c.effectButton) } -> click.isCancelled = true
                 // Cancel adding items to empty output slot
                 click.slot == hmcColor.config.buttons.outputSlot && (click.currentItem == null || !click.cursor.type.isAir) -> click.isCancelled = true
                 // Cancel everything but leftClick action
