@@ -1,7 +1,5 @@
 package com.hibiscusmc.hmccolor
 
-import com.mineinabyss.geary.modules.Geary
-import com.mineinabyss.geary.papermc.WorldManager
 import com.mineinabyss.geary.papermc.datastore.decodePrefabs
 import com.mineinabyss.geary.papermc.gearyPaper
 import com.mineinabyss.geary.papermc.tracking.items.ItemTracking
@@ -38,7 +36,7 @@ fun String.gearyItem() = if (Plugins.isEnabled("Geary")) PrefabKey.ofOrNull(this
 fun ItemStack.isDyeable(): Boolean {
     val blacklist = hmcColor.config.blacklistedItems
     return when {
-        itemMeta.asColorable() == null -> false
+        runCatching { asColorable() }.getOrDefault(itemMeta.asColorable()) == null -> false
         this.isNexoItem() -> this.nexoID() !in blacklist.nexoItems
         this.isCrucibleItem() -> this.crucibleID() !in blacklist.crucibleItems
         this.isItemsAdderItem() -> this.itemsAdderID() !in blacklist.itemsadderItems
